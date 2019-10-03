@@ -35,7 +35,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [ ] 1.0 draw svg
   * [x] 1 Hardware Renderer
   * [x] 2 Warm Up: Drawing Lines
-  * [ ] 3 Drawing Triangles
+  * [x] 3 Drawing Triangles
   * [ ] 4 Anti-Aliasing Using Supersampling
   * [ ] 5 Implementing Modeling and Viewing Transforms
   * [ ] 6 Drawing Scaled Images

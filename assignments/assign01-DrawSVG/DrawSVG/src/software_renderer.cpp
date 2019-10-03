@@ -284,9 +284,27 @@ void SoftwareRendererImp::rasterize_triangle( float x0, float y0,
                                               float x1, float y1,
                                               float x2, float y2,
                                               Color color ) {
-  // Task 3: 
-  // Implement triangle rasterization
+    // Task 3:
+    // Implement triangle rasterization
+    int minx = (int) floor(min({x0, x1, x2}));
+    int maxx = (int) floor(max({x0, x1, x2}));
+    int miny = (int) floor(min({y0, y1, y2}));
+    int maxy = (int) floor(max({y0, y1, y2}));
 
+    float dx0 = x1 - x0, dy0 = y1 - y0;
+    float dx1 = x2 - x1, dy1 = y2 - y1;
+    float dx2 = x0 - x2, dy2 = y0 - y2;
+    float rot = dx0 * dy1 - dy0 * dx1;
+
+    for (int x = minx; x <= maxx; x++) {
+        for (int y = miny; y <= maxy; y++) {
+            float e0 = (y + 0.5f - y0) * dx0 - (x + 0.5f - x0) * dy0;
+            float e1 = (y + 0.5f - y1) * dx1 - (x + 0.5f - x1) * dy1;
+            float e2 = (y + 0.5f - y2) * dx2 - (x + 0.5f - x2) * dy2;
+            if (e0 * rot >= 0 && e1 * rot >= 0 && e2 * rot >= 0)
+                rasterize_point(x, y, color);
+        }
+    }
 }
 
 void SoftwareRendererImp::rasterize_image( float x0, float y0,
