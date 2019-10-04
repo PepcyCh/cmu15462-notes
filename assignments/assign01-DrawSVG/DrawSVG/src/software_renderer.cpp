@@ -343,9 +343,32 @@ void SoftwareRendererImp::rasterize_triangle( float x0, float y0,
 void SoftwareRendererImp::rasterize_image( float x0, float y0,
                                            float x1, float y1,
                                            Texture& tex ) {
-  // Task 6: 
-  // Implement image rasterization
+    // Task 6:
+    // Implement image rasterization
+    float dx = x1 - x0;
+    float dy = y1 - y0;
 
+    float pd = 1.0f / sample_rate;
+    for (int x = (int) floor(x0 * sample_rate); x <= (int) floor(x1 * sample_rate); x++) {
+        for (int y = (int) floor(y0 * sample_rate); y <= (int) floor(y1 * sample_rate); y++) {
+            float u = ((x + 0.5f) * pd - x0) / dx;
+            float v = ((y + 0.5f) * pd - y0) / dy;
+            // Color c = sampler->sample_nearest(tex, u, v, 0);
+            Color c = sampler->sample_bilinear(tex, u, v, 0);
+            rasterize_point((x + 0.5f) * pd, (y + 0.5f) * pd, c);
+        }
+    }
+    /*
+    for (float x = floor(x0 + 0.5f * pd) + 0.5f * pd; x <= x1; x += pd) {
+        for (float y = floor(y0 + 0.5f * pd) + 0.5f * pd; y <= y1; y += pd) {
+            float u = (x - x0) / dx;
+            float v = (y - y0) / dy;
+            // Color c = sampler->sample_nearest(tex, u, v, 0);
+            Color c = sampler->sample_bilinear(tex, u, v, 0);
+            rasterize_point(x, y, c);
+        }
+    }
+     */
 }
 
 // resolve samples to render target

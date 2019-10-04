@@ -81,23 +81,63 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
 Color Sampler2DImp::sample_nearest(Texture& tex, 
                                    float u, float v, 
                                    int level) {
+    // Task 6: Implement nearest neighbour interpolation
 
-  // Task 6: Implement nearest neighbour interpolation
-  
-  // return magenta for invalid level
-  return Color(1,0,1,1);
+    // return magenta for invalid level
+    if (level >= tex.mipmap.size())
+        return Color(1,0,1,1);
 
+    int su = (int) floor(clamp(u, 0.0f, 0.99999f) * tex.mipmap[level].width);
+    int sv = (int) floor(clamp(v, 0.0f, 0.99999f) * tex.mipmap[level].height);
+
+    float r = tex.mipmap[level].texels[4 * (su + sv * tex.mipmap[level].width)] / 255.0f;
+    float g = tex.mipmap[level].texels[4 * (su + sv * tex.mipmap[level].width) + 1] / 255.0f;
+    float b = tex.mipmap[level].texels[4 * (su + sv * tex.mipmap[level].width) + 2] / 255.0f;
+    float a = tex.mipmap[level].texels[4 * (su + sv * tex.mipmap[level].width) + 3] / 255.0f;
+
+    return Color(r, g, b, a);
 }
 
 Color Sampler2DImp::sample_bilinear(Texture& tex, 
                                     float u, float v, 
                                     int level) {
-  
-  // Task 6: Implement bilinear filtering
+    // Task 6: Implement bilinear filtering
 
-  // return magenta for invalid level
-  return Color(1,0,1,1);
+    // return magenta for invalid level
+    if (level >= tex.mipmap.size())
+        return Color(1,0,1,1);
 
+    float tu = clamp(u, 0.0f, 0.99999f) * tex.mipmap[level].width;
+    float tv = clamp(v, 0.0f, 0.99999f) * tex.mipmap[level].height;
+
+    int su[2];
+    su[0] = clamp<int>(round(tu) - 1, 0, tex.mipmap[level].width - 1);
+    su[1] = clamp<int>(su[0] + 1, 0, tex.mipmap[level].width - 1);
+    float du = tu - 0.5f - su[0];
+
+    int sv[2];
+    sv[0] = clamp<int>(round(tv) - 1, 0, tex.mipmap[level].height - 1);
+    sv[1] = clamp<int>(sv[0] + 1, 0, tex.mipmap[level].height - 1);
+    float dv = tv - 0.5f - sv[0];
+
+    Color mix = Color(0, 0, 0, 0);
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            float r = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width)] / 255.0f;
+            float g = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width) + 1] / 255.0f;
+            float b = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width) + 2] / 255.0f;
+            float a = tex.mipmap[level].texels[4 * (su[i] + sv[j] * tex.mipmap[level].width) + 3] / 255.0f;
+            Color c = Color(r * a, g * a, b * a, a);
+            mix += (i * du + (1 - i) * (1 - du)) * (j * dv + (1 - j) * (1 - dv)) * c;
+        }
+    }
+
+    if (mix.a != 0) {
+        mix.r /= mix.a;
+        mix.g /= mix.a;
+        mix.b /= mix.a;
+    }
+    return mix;
 }
 
 Color Sampler2DImp::sample_trilinear(Texture& tex, 
