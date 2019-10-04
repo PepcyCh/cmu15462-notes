@@ -42,21 +42,27 @@ void SoftwareRendererImp::draw_svg( SVG& svg ) {
 
 void SoftwareRendererImp::set_sample_rate( size_t sample_rate ) {
 
-  // Task 4: 
-  // You may want to modify this for supersampling support
-  this->sample_rate = sample_rate;
-
+    // Task 4:
+    // You may want to modify this for supersampling support
+    this->sample_rate = sample_rate;
+    supersampling = sample_rate > 1;
+    if (supersampling) {
+        this->supersample_target.resize(4 * target_w * target_h * sample_rate * sample_rate);
+    }
 }
 
 void SoftwareRendererImp::set_render_target( unsigned char* render_target,
                                              size_t width, size_t height ) {
 
-  // Task 4: 
-  // You may want to modify this for supersampling support
-  this->render_target = render_target;
-  this->target_w = width;
-  this->target_h = height;
+    // Task 4:
+    // You may want to modify this for supersampling support
+    this->render_target = render_target;
+    this->target_w = width;
+    this->target_h = height;
 
+    if (supersampling) {
+        this->supersample_target.resize(4 * width * height * sample_rate * sample_rate);
+    }
 }
 
 void SoftwareRendererImp::draw_element( SVGElement* element ) {
@@ -101,7 +107,7 @@ void SoftwareRendererImp::draw_element( SVGElement* element ) {
 void SoftwareRendererImp::draw_point( Point& point ) {
 
   Vector2D p = transform(point.position);
-  rasterize_point( p.x, p.y, point.style.fillColor );
+  rasterize_point( p.x, p.y, point.style.fillColor, true );
 
 }
 
@@ -220,28 +226,45 @@ void SoftwareRendererImp::draw_group( Group& group ) {
 // The input arguments in the rasterization functions 
 // below are all defined in screen space coordinates
 
-void SoftwareRendererImp::rasterize_point( float x, float y, Color color ) {
+void SoftwareRendererImp::rasterize_point( float x, float y, Color color, bool point_or_line = false ) {
+    // fill in the nearest pixel
+    int sx = (int) floor(x);
+    int sy = (int) floor(y);
 
-  // fill in the nearest pixel
-  int sx = (int) floor(x);
-  int sy = (int) floor(y);
+    // check bounds
+    if ( sx < 0 || sx >= target_w ) return;
+    if ( sy < 0 || sy >= target_h ) return;
 
-  // check bounds
-  if ( sx < 0 || sx >= target_w ) return;
-  if ( sy < 0 || sy >= target_h ) return;
-
-  // fill sample - NOT doing alpha blending!
-  render_target[4 * (sx + sy * target_w)    ] = (uint8_t) (color.r * 255);
-  render_target[4 * (sx + sy * target_w) + 1] = (uint8_t) (color.g * 255);
-  render_target[4 * (sx + sy * target_w) + 2] = (uint8_t) (color.b * 255);
-  render_target[4 * (sx + sy * target_w) + 3] = (uint8_t) (color.a * 255);
-
+    // fill sample - NOT doing alpha blending!
+    if (!supersampling) {
+        render_target[4 * (sx + sy * target_w)] = (uint8_t) (color.r * 255);
+        render_target[4 * (sx + sy * target_w) + 1] = (uint8_t) (color.g * 255);
+        render_target[4 * (sx + sy * target_w) + 2] = (uint8_t) (color.b * 255);
+        render_target[4 * (sx + sy * target_w) + 3] = (uint8_t) (color.a * 255);
+    } else if (point_or_line) {
+        sx *= sample_rate;
+        sy *= sample_rate;
+        for (int i = 0; i < sample_rate; i++) {
+            for (int j = 0; j < sample_rate; j++) {
+                supersample_target[4 * (sx + j + (sy + i) * target_w * sample_rate)] = (uint8_t) (color.r * 255);
+                supersample_target[4 * (sx + j + (sy + i) * target_w * sample_rate) + 1] = (uint8_t) (color.g * 255);
+                supersample_target[4 * (sx + j + (sy + i) * target_w * sample_rate) + 2] = (uint8_t) (color.b * 255);
+                supersample_target[4 * (sx + j + (sy + i) * target_w * sample_rate) + 3] = (uint8_t) (color.a * 255);
+            }
+        }
+    } else {
+        sx = (int) floor(x * sample_rate);
+        sy = (int) floor(y * sample_rate);
+        supersample_target[4 * (sx + sy * target_w * sample_rate)] = (uint8_t) (color.r * 255);
+        supersample_target[4 * (sx + sy * target_w * sample_rate) + 1] = (uint8_t) (color.g * 255);
+        supersample_target[4 * (sx + sy * target_w * sample_rate) + 2] = (uint8_t) (color.b * 255);
+        supersample_target[4 * (sx + sy * target_w * sample_rate) + 3] = (uint8_t) (color.a * 255);
+    }
 }
 
 void SoftwareRendererImp::rasterize_line( float x0, float y0,
                                           float x1, float y1,
                                           Color color) {
-
     // Task 2:
     // Implement line rasterization
     float dx = abs(x1 - x0), dy = abs(y1 - y0);
@@ -257,8 +280,8 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
         for (; x < x1; x += 1) {
             float y2 = floor(y) == round(y) ? y - 1 : y + 1;
             float d = abs(y + 0.5 - round(y + 0.5));
-            rasterize_point(x, y, color * (1 - d));
-            rasterize_point(x, y2, color * d);
+            rasterize_point(x, y, color * (1 - d), true);
+            rasterize_point(x, y2, color * d, true);
             y += k;
         }
     } else {
@@ -273,8 +296,8 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
         for (; y < y1; y += 1) {
             float x2 = floor(x) == round(x) ? x - 1 : x + 1;
             float d = abs(x + 0.5 - round(x + 0.5));
-            rasterize_point(x, y, color * (1 - d));
-            rasterize_point(x2, y, color * d);
+            rasterize_point(x, y, color * (1 - d), true);
+            rasterize_point(x2, y, color * d, true);
             x += k;
         }
     }
@@ -296,13 +319,19 @@ void SoftwareRendererImp::rasterize_triangle( float x0, float y0,
     float dx2 = x0 - x2, dy2 = y0 - y2;
     float rot = dx0 * dy1 - dy0 * dx1;
 
+    float pd = 1.0f / sample_rate;
     for (int x = minx; x <= maxx; x++) {
         for (int y = miny; y <= maxy; y++) {
-            float e0 = (y + 0.5f - y0) * dx0 - (x + 0.5f - x0) * dy0;
-            float e1 = (y + 0.5f - y1) * dx1 - (x + 0.5f - x1) * dy1;
-            float e2 = (y + 0.5f - y2) * dx2 - (x + 0.5f - x2) * dy2;
-            if (e0 * rot >= 0 && e1 * rot >= 0 && e2 * rot >= 0)
-                rasterize_point(x, y, color);
+            for (int i = 0; i < sample_rate; i++) {
+                for (int j = 0; j < sample_rate; j++) {
+                    float px = (i + 0.5f) * pd, py = (j + 0.5f) * pd;
+                    float e0 = (y + py - y0) * dx0 - (x + px - x0) * dy0;
+                    float e1 = (y + py - y1) * dx1 - (x + px - x1) * dy1;
+                    float e2 = (y + py - y2) * dx2 - (x + px - x2) * dy2;
+                    if (e0 * rot >= 0 && e1 * rot >= 0 && e2 * rot >= 0)
+                        rasterize_point(x + px, y + py, color);
+                }
+            }
         }
     }
 }
@@ -318,11 +347,31 @@ void SoftwareRendererImp::rasterize_image( float x0, float y0,
 // resolve samples to render target
 void SoftwareRendererImp::resolve( void ) {
 
-  // Task 4: 
-  // Implement supersampling
-  // You may also need to modify other functions marked with "Task 4".
-  return;
+    // Task 4:
+    // Implement supersampling
+    // You may also need to modify other functions marked with "Task 4".
+    if (!supersampling) return;
 
+    for (int y = 0; y < target_h; y++) {
+        for (int x = 0; x < target_w; x++) {
+            float sumr = 0;
+            float sumg = 0;
+            float sumb = 0;
+            float suma = 0;
+            for (int i = 0; i < sample_rate; i++) {
+                for (int j = 0; j < sample_rate; j++) {
+                    sumr += supersample_target[4 * (x * sample_rate + j + (y * sample_rate + i) * sample_rate * target_w)];
+                    sumg += supersample_target[4 * (x * sample_rate + j + (y * sample_rate + i) * sample_rate * target_w) + 1];
+                    sumb += supersample_target[4 * (x * sample_rate + j + (y * sample_rate + i) * sample_rate * target_w) + 2];
+                    suma += supersample_target[4 * (x * sample_rate + j + (y * sample_rate + i) * sample_rate * target_w) + 3];
+                }
+            }
+            render_target[4 * (x + y * target_w)] = (uint8_t) (sumr / sample_rate / sample_rate);
+            render_target[4 * (x + y * target_w) + 1] = (uint8_t) (sumg / sample_rate / sample_rate);
+            render_target[4 * (x + y * target_w) + 2] = (uint8_t) (sumb / sample_rate / sample_rate);
+            render_target[4 * (x + y * target_w) + 3] = (uint8_t) (suma / sample_rate / sample_rate);
+        }
+    }
 }
 
 

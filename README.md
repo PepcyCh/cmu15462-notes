@@ -36,7 +36,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
   * [x] 1 Hardware Renderer
   * [x] 2 Warm Up: Drawing Lines
   * [x] 3 Drawing Triangles
-  * [ ] 4 Anti-Aliasing Using Supersampling
+  * [x] 4 Anti-Aliasing Using Supersampling
   * [ ] 5 Implementing Modeling and Viewing Transforms
   * [ ] 6 Drawing Scaled Images
   * [ ] 7 Anti-Aliasing Image Elements Using Trilinear Filtering

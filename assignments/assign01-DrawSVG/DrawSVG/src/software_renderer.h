@@ -31,6 +31,7 @@ class SoftwareRenderer : public SVGRenderer {
   // Clear render target
   inline void clear_target() {
     memset(render_target, 255, 4 * target_w * target_h);
+    if (supersampling) std::fill(supersample_target.begin(), supersample_target.end(), 255);
   }
 
   // Set texture sampler
@@ -59,6 +60,9 @@ class SoftwareRenderer : public SVGRenderer {
 
   // SVG coordinates to screen space coordinates
   Matrix3x3 svg_2_screen;
+
+  std::vector<unsigned char> supersample_target;
+  bool supersampling = false;
 
 }; // class SoftwareRenderer
 
@@ -112,7 +116,7 @@ class SoftwareRendererImp : public SoftwareRenderer {
   // Rasterization //
 
   // rasterize a point
-  void rasterize_point( float x, float y, Color color );
+  void rasterize_point( float x, float y, Color color, bool point_or_line );
 
   // rasterize a line
   void rasterize_line( float x0, float y0,
