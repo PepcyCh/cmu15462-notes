@@ -70,6 +70,9 @@ void SoftwareRendererImp::draw_element( SVGElement* element ) {
   // Task 5 (part 1):
   // Modify this to implement the transformation stack
 
+  Matrix3x3 temp_matrix = transformation;
+  transformation = transformation * element->transform;
+
   switch(element->type) {
     case POINT:
       draw_point(static_cast<Point&>(*element));
@@ -99,6 +102,7 @@ void SoftwareRendererImp::draw_element( SVGElement* element ) {
       break;
   }
 
+  transformation = temp_matrix;
 }
 
 
@@ -275,9 +279,9 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
             swap(y0, y1);
         }
         float k = (y1 - y0) / (x1 - x0);
-        float x = floor(x0);
+        float x = floor(x0) + 0.5;
         float y = y0 + k * (x - x0);
-        for (; x < x1; x += 1) {
+        for (; x <= x1; x += 1) {
             float y2 = floor(y) == round(y) ? y - 1 : y + 1;
             float d = abs(y + 0.5 - round(y + 0.5));
             rasterize_point(x, y, color * (1 - d), true);
@@ -291,9 +295,9 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
             swap(x0, x1);
         }
         float k = (x1 - x0) / (y1 - y0);
-        float y = floor(y0);
+        float y = floor(y0) + 0.5;
         float x = x0 + k * (y - y0);
-        for (; y < y1; y += 1) {
+        for (; y <= y1; y += 1) {
             float x2 = floor(x) == round(x) ? x - 1 : x + 1;
             float d = abs(x + 0.5 - round(x + 0.5));
             rasterize_point(x, y, color * (1 - d), true);
