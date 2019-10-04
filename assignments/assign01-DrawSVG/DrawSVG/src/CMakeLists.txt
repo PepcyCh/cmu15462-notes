@@ -31,7 +31,7 @@ set(CMU462_DRAWSVG_SOURCE
     texture.cpp
     viewport.cpp
     triangulation.cpp
-    hardware_renderer.cpp
+#    hardware_renderer.cpp
     software_renderer.cpp
     drawsvg.cpp
     main.cpp
