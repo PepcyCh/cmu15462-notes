@@ -10,9 +10,9 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [x] 02 Math Review Part I: Linear Algebra
 * [x] 03 Math Review Part II: (Vector Calculus)
 * [x] 04 Drawing a Triangle
-* [ ] 05 Coordinate Spaces and Transformations
-* [ ] 06 3D Rotations and Complex Representations
-* [ ] 07 Perspective Projection and Texture Mapping
+* [x] 05 Coordinate Spaces and Transformations
+* [x] 06 3D Rotations and Complex Representations
+* [x] 07 Perspective Projection and Texture Mapping
 * [ ] 08 Depth and Transparency
 * [ ] 09 Introduction to Geometry
 * [ ] 10 Meshes and Manifolds

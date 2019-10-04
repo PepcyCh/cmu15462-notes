@@ -218,3 +218,131 @@ Traverse triangle in blocks. Test all samples in block against triangle in paral
 
 "early in" and "early out"
 
+## Lect 5 Coordinate Spaces and Transformations
+
+> site: [Coordinate Spaces and Transformations](http://15462.courses.cs.cmu.edu/fall2018/lecture/transformations)
+
+### Transformations
+
+#### Linear
+
+Scale, rotation, reflection, shear
+
+#### Affine
+
+Translation
+
+#### Euclidean (Isometries)
+
+Translation, rotation, reflection
+
+### Representing Transformations with Matrices
+
+### Homogeneous Coordinates
+
+Homogeneous coordinates let us encode translations as linear transformations (2D translation as 3D shear).
+
+### Screen Transformation
+
+(reflect +) translate + scale
+
+## Lect 6 3D Rotations and Complex Representations
+
+> site: [3D Rotations and Complex Representations](http://15462.courses.cs.cmu.edu/fall2018/lecture/3drotations)
+
+### Euler Angles
+
+#### Gimbal Lock
+
+When using Euler angles $\theta_x, \theta_y, \theta_z$, may reach a situation where there is no way to rotate around one of the three axes:
+$$
+R_x R_y R_z = \begin{bmatrix}
+\cos \theta_y \cos \theta_z & -\cos \theta_y \sin \theta_z & \sin \theta_y \\
+\cos \theta_z \sin \theta_x \sin \theta_y + \cos \theta_x \sin \theta_z & \cos \theta_x \cos \theta_z - \sin \theta_x \sin \theta_y \sin \theta_z & -\cos \theta_y \sin \theta_x \\
+-\cos \theta_x \cos \theta_z \sin \theta_y + \sin \theta_x \sin \theta_z & \cos \theta_z \sin \theta_x + \cos \theta_x \sin \theta_y \sin \theta_z & \cos \theta_x \cos \theta_y
+\end{bmatrix}
+$$
+When $\theta_y = \pi / 2$:
+$$
+R_x R_y R_z = \begin{bmatrix}
+0 & 0 & 1 \\
+\cos \theta_z \sin \theta_x + \cos \theta_x \sin \theta_z & \cos \theta_x \cos \theta_z - \sin \theta_x \sin \theta_z & 0 \\
+-\cos \theta_x \cos \theta_z + \sin \theta_x \sin \theta_z & \cos \theta_z \sin \theta_x + \cos \theta_x \sin \theta_z & 0\\
+\end{bmatrix}
+$$
+
+### Rotations around a Given Axis $u$ by a Given Angle $\theta$
+
+### Complex Representation for 2D Rotations
+
+### Quaternions
+
+$$
+a + x\imath + y\jmath + zk = (a, \mathbf{v}), \mathbf{v} = (x, y, z) \\
+(a, \mathbf{u}) (b, \mathbf{v}) = (ab - \mathbf{u} \cdot \mathbf{v}, a\mathbf{u} + b\mathbf{v} + \mathbf{u} \times \mathbf{v}) \\
+\mathbf{u}\mathbf{v} = (-\mathbf{u} \cdot \mathbf{v}, \mathbf{u} \times \mathbf{v}) = \mathbf{u} \times \mathbf{v} - \mathbf{u} \cdot \mathbf{v}
+$$
+
+Let $q$ be a unit quaternion and $\mathbf{x}$ be a vector (pure imaginary), then $\bar{q}\mathbf{x}q$ always expresses some 3D rotation.
+
+More precisely, if $q = \cos(\theta / 2) + \sin(\theta / 2) \mathbf{u}$, then $\bar{q}\mathbf{x}q$ is the vector after $\mathbf{x}$ is rotated around axis $\mathbf{u}$ by $\theta$.
+
+### Interpolating Rotations
+
+SLERP (Spherical linear interpolation):
+$$
+\text{Slerp}(q_0, q_1, t) = q_0(q_0^{-1}q_1)^t, ~ t \in [0, 1]
+$$
+
+## Lect 7 Perspective Projection and Texture Mapping
+
+> site: [Perspective Projection and Texture Mapping](http://15462.courses.cs.cmu.edu/fall2018/lecture/texture)
+
+### From Objects to the Screen
+
+1. **World coordinates**: original desciption of objects
+2. **View coordinates**: all positions now expressed relative to camera; camera is sitting at origin looking down -z direction
+3. **Clip coordinates**: everything visible to the camera is mapped to unit cube for easy clipping
+4. **Nomalized coordinates**: unit cube mapped to unit square via perspective divide
+5. **Window coordinates**: screen transformation
+
+### Perspective Projection
+
+View frustum
+
+Clipping
+
+Z-fighting
+
+Matrix for perspective projection
+
+### Triangle Interpolation
+
+#### Barycentric Coordinates
+
+$$
+\phi_i(x) = \frac{\text{area}(x, x_j, x_k)}{\text{area}(x_i, x_j, x_k)} \\
+f(x) = f(x_i) \phi_i(x) + f(x_j) \phi_j(x) + f(x_k) \phi_k(x)
+$$
+
+#### Perspective Correct Interpolation
+
+Perspective transformation is not affine.
+
+Divide interpolated $f(x) / z$ by interpolated $1/z$.
+
+### Texture Mapping
+
+#### Texture Coordinates
+
+#### Mipmap
+
+Mipmap level:
+$$
+\frac{\text{d}u}{\text{d}x} = u_{10} - u_{00}, \frac{\text{d}v}{\text{d}x} = v_{10} - v_{00} \\
+\frac{\text{d}u}{\text{d}y} = u_{01} - u_{00}, \frac{\text{d}v}{\text{d}y} = v_{01} - v_{00} \\
+L = \max\left( \sqrt{ \left(\frac{\text{d}u}{\text{d}x}\right)^2 + \left(\frac{\text{d}v}{\text{d}x}\right)^2 }, \sqrt{ \left(\frac{\text{d}u}{\text{d}y}\right)^2 + \left(\frac{\text{d}v}{\text{d}y}\right)^2 } \right) \\
+\text{mipmap d} = \log_2 L
+$$
+Tri-linear filtering
+
