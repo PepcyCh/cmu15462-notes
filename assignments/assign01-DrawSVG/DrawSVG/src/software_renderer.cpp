@@ -354,21 +354,11 @@ void SoftwareRendererImp::rasterize_image( float x0, float y0,
             float u = ((x + 0.5f) * pd - x0) / dx;
             float v = ((y + 0.5f) * pd - y0) / dy;
             // Color c = sampler->sample_nearest(tex, u, v, 0);
-            Color c = sampler->sample_bilinear(tex, u, v, 0);
+            // Color c = sampler->sample_bilinear(tex, u, v, 0);
+            Color c = sampler->sample_trilinear(tex, u, v, dx, dy);
             rasterize_point((x + 0.5f) * pd, (y + 0.5f) * pd, c);
         }
     }
-    /*
-    for (float x = floor(x0 + 0.5f * pd) + 0.5f * pd; x <= x1; x += pd) {
-        for (float y = floor(y0 + 0.5f * pd) + 0.5f * pd; y <= y1; y += pd) {
-            float u = (x - x0) / dx;
-            float v = (y - y0) / dy;
-            // Color c = sampler->sample_nearest(tex, u, v, 0);
-            Color c = sampler->sample_bilinear(tex, u, v, 0);
-            rasterize_point(x, y, c);
-        }
-    }
-     */
 }
 
 // resolve samples to render target
