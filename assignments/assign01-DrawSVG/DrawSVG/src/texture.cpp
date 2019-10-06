@@ -182,7 +182,8 @@ Color Sampler2DImp::sample_trilinear(Texture& tex,
     hc.g *= hc.a;
     hc.b *= hc.a;
 
-    Color mix = (lc + hc) * 0.5f;
+    float dd = level - ld;
+    Color mix = (1 - dd) * lc + dd * hc;
     if (mix.a != 0) {
         mix.r /= mix.a;
         mix.g /= mix.a;
