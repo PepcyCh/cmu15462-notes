@@ -32,7 +32,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 
 ### Assignments
 
-* [ ] 1.0 draw svg
+* [x] 1.0 draw svg
   * [x] 1 Hardware Renderer
   * [x] 2 Warm Up: Drawing Lines
   * [x] 3 Drawing Triangles
@@ -41,7 +41,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
   * [x] 6 Drawing Scaled Images
   * [x] 7 Anti-Aliasing Image Elements Using Trilinear Filtering
   * [x] 8 Alpha Compositing
-  * [ ] 9 Draw Something!!!
+  * [x] 9 Draw Something!!!
 * [ ] 2.0 MeshEdit
 * [ ] 3.0 PathTracer
 * [ ] 4.0 Animation
