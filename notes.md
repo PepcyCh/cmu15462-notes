@@ -346,3 +346,63 @@ L = \max\left( \sqrt{ \left(\frac{\text{d}u}{\text{d}x}\right)^2 + \left(\frac{\
 $$
 Tri-linear filtering
 
+## Lect 8 Depth and Transparency
+
+> site: [Depth and Transparency](http://15462.courses.cs.cmu.edu/fall2018/lecture/depthtransparency)
+
+### Depth-buffer (Z-buffer)
+
+### Transparency
+
+#### Over operator
+
+"Over" is not commutative.
+$$
+A = \begin{bmatrix}A_r & A_g & A_b\end{bmatrix}^T \\
+B = \begin{bmatrix}B_r & B_g & B_b\end{bmatrix}^T \\
+B \text{ over } A = C = \alpha_B B + (1 - \alpha_B) \alpha_A A
+$$
+
+#### Premultiplied alpha
+
+**Non-premultiplied alpha**:
+$$
+A = \begin{bmatrix}A_r & A_g & A_b\end{bmatrix}^T \\
+B = \begin{bmatrix}B_r & B_g & B_b\end{bmatrix}^T \\
+B \text{ over } A = C = \alpha_B B + (1 - \alpha_B) \alpha_A A
+$$
+**Premultiplied alpha**:
+$$
+A' = \begin{bmatrix}\alpha_A A_r & \alpha_A A_g & \alpha_A A_b & \alpha_A\end{bmatrix}^T \\
+B' = \begin{bmatrix}\alpha_B B_r & \alpha_B B_g & \alpha_B B_b & \alpha_B\end{bmatrix}^T \\
+C' = B' + (1 - \alpha_B) A'
+$$
+**Composite alpha**:
+$$
+\alpha_C = \alpha_B + (1 - \alpha_B)\alpha_A
+$$
+Premultiplied alpha composites alpha just like how it composies rgb. Non-premutiplied alpha composites alpha differently than rgb.
+
+#### Problems Caused by Non-premultiplied Alpha
+
+Use premultiplied alpha when up- and downsampling.
+
+Non-premultipled alpha is not closed under composition. (The result will be premultipled alpha.)
+
+### Review on Rasterization Pipeline
+
+1. Transform triangle vertices into camera space.
+2. Apply perspective projection transform to transform vertices into normalized coordinate space.
+3. Clipping.
+4. Transform to screen coordinates.
+5. Setup triangle. (Before rasterizing triangle, can compute a bunch of data that will be used by all fragments, such as triangl edge equations, triangle attribute equations etc.)
+6. Sample coverage.
+7. Compute triangle color at sample point.
+8. Perform depth test.
+9. Update color buffer.
+
+### Graphics Pipeline
+
+* Structures rendering computation as a sequence of operations performed on vertices, primitives (e.g., triangles), fragments, and screen samples.
+* Behavior of parts of the pipeline is application-defined using shader programs.
+* Pipeline operations implemented by highly, optimized parallel processors and fixed-function hardware (GPUs).

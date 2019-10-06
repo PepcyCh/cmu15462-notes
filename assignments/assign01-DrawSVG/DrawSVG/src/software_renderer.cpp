@@ -230,6 +230,13 @@ void SoftwareRendererImp::draw_group( Group& group ) {
 // The input arguments in the rasterization functions 
 // below are all defined in screen space coordinates
 
+static void blend(uint8_t *dst, const Color &c) {
+    dst[0] = (c.r + (1 - c.a) * (dst[0] / 255.0f)) * 255;
+    dst[1] = (c.g + (1 - c.a) * (dst[1] / 255.0f)) * 255;
+    dst[2] = (c.b + (1 - c.a) * (dst[2] / 255.0f)) * 255;
+    dst[3] = (c.a + (1 - c.a) * (dst[3] / 255.0f)) * 255;
+}
+
 void SoftwareRendererImp::rasterize_point( float x, float y, Color color, bool point_or_line = false ) {
     // fill in the nearest pixel
     int sx = (int) floor(x);
@@ -239,30 +246,42 @@ void SoftwareRendererImp::rasterize_point( float x, float y, Color color, bool p
     if ( sx < 0 || sx >= target_w ) return;
     if ( sy < 0 || sy >= target_h ) return;
 
-    // fill sample - NOT doing alpha blending!
+    // fill sample
+    color.r *= color.a;
+    color.g *= color.a;
+    color.b *= color.a;
     if (!supersampling) {
+        /*
         render_target[4 * (sx + sy * target_w)] = (uint8_t) (color.r * 255);
         render_target[4 * (sx + sy * target_w) + 1] = (uint8_t) (color.g * 255);
         render_target[4 * (sx + sy * target_w) + 2] = (uint8_t) (color.b * 255);
         render_target[4 * (sx + sy * target_w) + 3] = (uint8_t) (color.a * 255);
+         */
+        blend(render_target + (4 * (sx + sy * target_w)), color);
     } else if (point_or_line) {
         sx *= sample_rate;
         sy *= sample_rate;
         for (int i = 0; i < sample_rate; i++) {
             for (int j = 0; j < sample_rate; j++) {
+                /*
                 supersample_target[4 * (sx + j + (sy + i) * target_w * sample_rate)] = (uint8_t) (color.r * 255);
                 supersample_target[4 * (sx + j + (sy + i) * target_w * sample_rate) + 1] = (uint8_t) (color.g * 255);
                 supersample_target[4 * (sx + j + (sy + i) * target_w * sample_rate) + 2] = (uint8_t) (color.b * 255);
                 supersample_target[4 * (sx + j + (sy + i) * target_w * sample_rate) + 3] = (uint8_t) (color.a * 255);
+                 */
+                blend(&supersample_target[4 * (sx + j + (sy + i) * target_w * sample_rate)], color);
             }
         }
     } else {
         sx = (int) floor(x * sample_rate);
         sy = (int) floor(y * sample_rate);
+        /*
         supersample_target[4 * (sx + sy * target_w * sample_rate)] = (uint8_t) (color.r * 255);
         supersample_target[4 * (sx + sy * target_w * sample_rate) + 1] = (uint8_t) (color.g * 255);
         supersample_target[4 * (sx + sy * target_w * sample_rate) + 2] = (uint8_t) (color.b * 255);
         supersample_target[4 * (sx + sy * target_w * sample_rate) + 3] = (uint8_t) (color.a * 255);
+         */
+        blend(&supersample_target[4 * (sx + sy * target_w * sample_rate)], color);
     }
 }
 
@@ -383,10 +402,19 @@ void SoftwareRendererImp::resolve( void ) {
                     suma += supersample_target[4 * (x * sample_rate + j + (y * sample_rate + i) * sample_rate * target_w) + 3];
                 }
             }
-            render_target[4 * (x + y * target_w)] = (uint8_t) (sumr / sample_rate / sample_rate);
-            render_target[4 * (x + y * target_w) + 1] = (uint8_t) (sumg / sample_rate / sample_rate);
-            render_target[4 * (x + y * target_w) + 2] = (uint8_t) (sumb / sample_rate / sample_rate);
-            render_target[4 * (x + y * target_w) + 3] = (uint8_t) (suma / sample_rate / sample_rate);
+            sumr /= sample_rate * sample_rate;
+            sumg /= sample_rate * sample_rate;
+            sumb /= sample_rate * sample_rate;
+            suma /= sample_rate * sample_rate;
+            if (suma != 0) {
+                sumr /= suma / 255;
+                sumg /= suma / 255;
+                sumb /= suma / 255;
+            }
+            render_target[4 * (x + y * target_w)] = (uint8_t) sumr;
+            render_target[4 * (x + y * target_w) + 1] = (uint8_t) sumg;
+            render_target[4 * (x + y * target_w) + 2] = (uint8_t) sumb;
+            render_target[4 * (x + y * target_w) + 3] = (uint8_t) suma;
         }
     }
 }

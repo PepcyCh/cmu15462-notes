@@ -13,7 +13,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [x] 05 Coordinate Spaces and Transformations
 * [x] 06 3D Rotations and Complex Representations
 * [x] 07 Perspective Projection and Texture Mapping
-* [ ] 08 Depth and Transparency
+* [x] 08 Depth and Transparency
 * [ ] 09 Introduction to Geometry
 * [ ] 10 Meshes and Manifolds
 * [ ] 11 Digital Geometry Processing
@@ -40,7 +40,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
   * [x] 5 Implementing Modeling and Viewing Transforms
   * [x] 6 Drawing Scaled Images
   * [x] 7 Anti-Aliasing Image Elements Using Trilinear Filtering
-  * [ ] 8 Alpha Compositing
+  * [x] 8 Alpha Compositing
   * [ ] 9 Draw Something!!!
 * [ ] 2.0 MeshEdit
 * [ ] 3.0 PathTracer
