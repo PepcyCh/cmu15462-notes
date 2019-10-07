@@ -14,7 +14,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [x] 06 3D Rotations and Complex Representations
 * [x] 07 Perspective Projection and Texture Mapping
 * [x] 08 Depth and Transparency
-* [ ] 09 Introduction to Geometry
+* [x] 09 Introduction to Geometry
 * [ ] 10 Meshes and Manifolds
 * [ ] 11 Digital Geometry Processing
 * [ ] 12 Geometric Queries

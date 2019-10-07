@@ -319,8 +319,8 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
         for (; y <= y1; y += 1) {
             float x2 = floor(x) == round(x) ? x - 1 : x + 1;
             float d = abs(x + 0.5 - round(x + 0.5));
-            rasterize_point(x, y, color * (1 - d), true);
-            rasterize_point(x2, y, color * d, true);
+            rasterize_point(x, y, Color(color.r, color.g, color.b, color.a * (1 - d)), true);
+            rasterize_point(x2, y, Color(color.r, color.g, color.b, color.a * d), true);
             x += k;
         }
     }
@@ -386,7 +386,26 @@ void SoftwareRendererImp::resolve( void ) {
     // Task 4:
     // Implement supersampling
     // You may also need to modify other functions marked with "Task 4".
-    if (!supersampling) return;
+    if (!supersampling) {
+        for (int y = 0; y < target_h; y++) {
+            for (int x = 0; x < target_w; x++) {
+                float r = render_target[4 * (x + y * target_w)] / 255.0f;
+                float g = render_target[4 * (x + y * target_w) + 1] / 255.0f;
+                float b = render_target[4 * (x + y * target_w) + 2] / 255.0f;
+                float a = render_target[4 * (x + y * target_w) + 3] / 255.0f;
+                if (a != 0) {
+                    r /= a;
+                    g /= a;
+                    b /= a;
+                }
+                render_target[4 * (x + y * target_w)] = (uint8_t) (r * 255);
+                render_target[4 * (x + y * target_w) + 1] = (uint8_t) (g * 255);
+                render_target[4 * (x + y * target_w) + 2] = (uint8_t) (b * 255);
+            }
+        }
+
+        return;
+    }
 
     for (int y = 0; y < target_h; y++) {
         for (int x = 0; x < target_w; x++) {

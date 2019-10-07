@@ -406,3 +406,171 @@ Non-premultipled alpha is not closed under composition. (The result will be prem
 * Structures rendering computation as a sequence of operations performed on vertices, primitives (e.g., triangles), fragments, and screen samples.
 * Behavior of parts of the pipeline is application-defined using shader programs.
 * Pipeline operations implemented by highly, optimized parallel processors and fixed-function hardware (GPUs).
+
+## Lect 9 Introduction to Geometry
+
+> site: [Introduction to Geometry](http://15462.courses.cs.cmu.edu/fall2018/lecture/introgeometry)
+
+### Representation of Geometry
+
+#### Implicit
+
+$f(x, y, z) = 0$
+
+It makes some tasks hard (like sampling), but makes other tasks easy (like inside/outside tests).
+
+#### Explicit
+
+Traingle meshes, polygon meshes, subdivision surfaces, NURBS, point clouds, ...
+
+It makes some tasks easy (like sampling), but makes other tasks hard (like inside/outside tests).
+
+### Some Implicit Representations
+
+#### Algebraic Surfaces
+
+Surface is zero set of a polynomial in $x, y, z$.
+
+$f(x, y, z) = 0$
+
+#### Constructive Solid Geometry
+
+Build more complicated shapes via Boolean operations (union, intersection, difference).
+
+#### Blobby Surfaces
+
+Instead of Booleans, gradually blend surfaces together.
+
+#### Blending Distance Functions
+
+A *distance function* gives distance to closest point on object.
+
+Can blend any two distance functions $d_1, d_2$.
+
+$D_1 \cup D_2 : f(x) = \min(d_1(x), d_2(x))$
+
+#### Level Set Methods
+
+Implicit surfaces have some nice features (e,g, merging/splitting). But, hard to describle complex shapes in closed form.
+
+Alternative: store a grid of values approximating function. Surface is found where interpolated values equal zero.
+
+Provides much more explicit control over shape (like a texture).
+
+Often demands sophisticated filtering (trilinear, tricubic...).
+
+**Level set storage**: Storage for 2D now is $O(n^3)$. Can reduce cost by storing only a narrow band around surface.
+
+#### Fractal
+
+#### Pros & Cons 
+
+**Pros:** 
+
+- description can be very compact (e.g., a polynomial) 
+- easy to determine if a point is in our shape (just plug it in!) 
+- other queries may also be easy (e.g., distance to surface) 
+- for simple shapes, exact description/no sampling error 
+- easy to handle changes in topology (e.g., fluid) 
+
+**Cons:** 
+
+- expensive to find all points in the shape (e.g., for drawing) 
+- very difficult to model complex shapes 
+
+### Some Explicit Representations
+
+#### Point Cloud
+
+Easiest representation.
+
+Easily represent any kind of geometry.
+
+Hard to interpolate undersample regions. Hard to do processing/simulation...
+
+#### Polygon Mesh
+
+Easier to do processing/simulation, adaptive sampling.
+
+#### Triangle Mesh
+
+ Store vertices and indices.
+
+#### Bernstein Basis
+
+$$
+B_{n, k} (x) = \binom{n}{k} x^k (1 - x)^{n - k} \\
+(0 \leq x \leq 1, ~ k = 0, 1, \dots, n, ~ 0^0 = 1)
+$$
+
+#### Bézier Curves
+
+$$
+\gamma(s) = \sum_{i = 0}^{n} B_{n, k} (s) \mathbf{P_k}
+$$
+
+$n = 1$: a line segment
+
+$n = 3$: cubic Bézier
+
+Important feartues:
+
+* interpolates endpoints
+* tangent to end segments
+* contained in convex hull (nice to rasterization)
+
+High-degree Bernstein polynomials don't interpolate well.
+
+#### Piecewise Bézier Curves
+
+Alternative idea: piece together many Bézier curves.
+$$
+\gamma(u) = \gamma_i(u) \left( \frac{u - u_i}{u_{i + 1} - u_i} \right) ~ (u_i \leq u < u_{i + 1})
+$$
+**Tangent continuity**
+
+To get "seamless" curves, need points and tangents to line up.
+
+#### Tensor Product
+
+Can use a pair of curves to get a surface.
+$$
+(f \otimes g) (u, v) = f(u)g(v)
+$$
+
+#### Bézier Patches
+
+Bézier patch is sum of tensor products of Berstein bases.
+$$
+B_{3, i, j} (u, v) = B_{3, i}(u) B_{3, j}(v) \\
+S(u, v) = \sum_{i = 0}^{3} \sum_{j = 0}^{3} B_{3, i, j}(u, v) \mathbf{P_{ij}}
+$$
+
+#### Bézier Surfaces
+
+#### Spline Patch Schemes
+
+Tradeoffs:
+
+* degrees of freedom
+* continuity
+* difficulty of editing
+* cost of evaluation
+* generality
+* ...
+
+### Subdivisions
+
+1. Start with control curve. 
+2. Insert new vertex at each edge midpoint. 
+3. Update vertex positions according to fixed rule.
+4. For careful choice of averaging rule, yields smooth curve.
+
+#### Subdivision Surfaces (Explicit)
+
+Start with coarse polygon mesh (control cage) and subdivide each element.
+
+Many possible rules: Catmull-Clark (quads), Loop (triangles)...
+
+Easier than splines for modeling, harder to evaluate pointwise.
+
