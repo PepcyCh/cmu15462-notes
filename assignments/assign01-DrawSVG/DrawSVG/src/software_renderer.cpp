@@ -303,8 +303,8 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
         for (; x <= x1; x += 1) {
             float y2 = floor(y) == round(y) ? y - 1 : y + 1;
             float d = abs(y + 0.5 - round(y + 0.5));
-            rasterize_point(x, y, color * (1 - d), true);
-            rasterize_point(x, y2, color * d, true);
+            rasterize_point(x, y, Color(color.r, color.g, color.b, color.a * (1 - d)), true);
+            rasterize_point(x, y2, Color(color.r, color.g, color.b, color.a * d), true);
             y += k;
         }
     } else {
