@@ -63,7 +63,7 @@ void Sampler2DImp::generate_mips(Texture& tex, int startLevel) {
     level.texels = vector<unsigned char>(4 * width * height);
   }
 
-  for(size_t i = 1; i < startLevel; ++i) {
+  for(size_t i = 1; i <= numSubLevels; ++i) {
     MipLevel& mip = tex.mipmap[i];
 
     for (int x = 0; x < mip.width; x++) {
