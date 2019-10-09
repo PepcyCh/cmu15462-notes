@@ -15,7 +15,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [x] 07 Perspective Projection and Texture Mapping
 * [x] 08 Depth and Transparency
 * [x] 09 Introduction to Geometry
-* [ ] 10 Meshes and Manifolds
+* [x] 10 Meshes and Manifolds
 * [ ] 11 Digital Geometry Processing
 * [ ] 12 Geometric Queries
 * [ ] 13 Spatial Data Structures

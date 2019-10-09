@@ -574,3 +574,77 @@ Many possible rules: Catmull-Clark (quads), Loop (triangles)...
 
 Easier than splines for modeling, harder to evaluate pointwise.
 
+## Lect 10 Meshes and Manifolds
+
+> site: [Meshes and Manifolds](http://15462.courses.cs.cmu.edu/fall2018/lecture/meshes)
+
+### Manifolds
+
+(Manifolds：流形)
+
+A surface is the boundary of an object.
+
+Surfaces are manifolds. (If you zoom in far enough at any point look like a plane. / Can easily be flattened into a plane.)
+
+#### Manifold Polygon Mesh:
+
+Every edge is contained in (at most) only two polygons.
+
+The polygons containing each vertex make a single "fan".
+
+#### Boundary
+
+Globally, each boundary forms a loop.
+
+For polygon mesh, one polygon per boundary edge.
+
+### Storage
+
+#### Polygon Soup
+
+Just array of vertices and indices.
+
+#### Incidence Matrices
+
+Incidence matrices between vertices and edges, edges and faces.
+
+#### Halfedge
+
+Linked list.
+
+Halfedges act as "glu" between elements (vertices, edges, faces).
+
+Each vertex, edge or face just points to one of its halfedge.
+
+Traversal is easy.
+
+Halfedge meshes are always manifolds.
+
+**Operations on Halfedge**: flip, split, collapse
+
+#### Other Data Structrues
+
+* Winged edge
+* Corner table
+* Quadedge
+* ...
+
+### Subdivision Modeling
+
+Common modeling paradigm in modern 3D tooIs:
+- Coarse "control cage"
+- Perform local operations to control/edit shape
+- Global subdivision process determines final surface
+
+#### Local Operations
+
+* Edge bevel
+* Face bevel
+* Vertex bevel
+* Edge collapse
+* Face collapse
+* Edge flip
+* Edge vertex split
+* Erase edge
+* Erase vertex
+
