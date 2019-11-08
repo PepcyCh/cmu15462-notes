@@ -644,7 +644,210 @@ Common modeling paradigm in modern 3D tooIs:
 * Edge collapse
 * Face collapse
 * Edge flip
-* Edge vertex split
+* Edge split
 * Erase edge
 * Erase vertex
+
+## Lect 11 Digital Geometry Processing
+
+> site: [Digital Geometry Processing](http://15462.courses.cs.cmu.edu/fall2018/lecture/geometryprocessing)
+
+### Geometry Processing
+
+#### Reconstruction
+
+Given samples of geometry, reconstruct surface.
+
+Samples:
+
+* points, points & normals...
+* image pair / set (multi-view video)
+* line density integrals (MRI/CT scans)
+
+How to get a surface:
+
+* silhouette-based (visual hull)
+* Voronoi-based (e.g. power crust)
+* PDE-based (e.g. Poisson reconstruction)
+* Radon transform / isosurfacing (marching cubes)
+
+#### Upsampling
+
+Increase resolution via interpolation.
+
+Images: bilinear, bicubic...
+
+Polygon meshes:
+
+* subdivision
+* bilateral upsampling
+
+#### Downsampling
+
+Decrease resolution, try to preserve shape/appearence
+
+Image: nearest, bilinear, bicubic
+
+Point clouds: subsampling
+
+Polygon meshes:
+
+* iterative decimation
+* variational shape appoximation
+
+#### Resampling
+
+Modify sample distribution to improve quality
+
+Image: not an issue
+
+Polygon meshes: shape of polygons is extremely important
+
+* different notion of quality depending on task
+* visualization & solving equation
+
+#### Filtering
+
+Remove noise or emphasize important features (e.g. edges)
+
+Image: blurring, bilateral filtering, edge detection
+
+Polygon meshes:
+
+* curvature flow
+* bilateral filter
+* spectral filter
+
+#### Compression
+
+Image: run-length, Huffman; cosine, wavelet
+
+Polygon meshes:
+
+* compress geometry and connectivity
+* lossy & lossless
+
+#### Shape Analysis
+
+Identity / understand important semantic features
+
+Image: CV, segmentation, face detection
+
+Polygon meshes:
+
+* segmentation
+* correspondence
+* symmetry detection
+
+### What makes a "good" mesh
+
+#### Good appoximation of original shape
+
+Keep only elements that contribute information about shape.
+
+The vertices of a mesh are very close to the surface it approximates doesn't mean it's a good approximation. (e.g. normals)
+
+#### Triangle shape
+
+Delaunay / All angles close to 60 degree
+
+Regular vertex degree
+
+### Upsampling
+
+#### Upsampling via Subdivision
+
+Repeatedly split each element into smaller pieces.
+
+Replace vertex positions with weighted average of neighbors.
+
+Main considerations:
+
+* interpolation vs. approximation
+* limit surface continuity
+* behavior at irregular vertex
+
+Quad: Catmull-Clark
+
+Triangle: Loop, Butterfly, Sqrt(3)
+
+#### Catmull-Clark Subdivision
+
+**Step 0:** split every polygon indo quadrilaterals
+
+New vertex position are weighted combination of old ones.
+
+**Step 1:** Face coords: average of vertices
+
+**Step 2:** Edge coords: average of the two neighbouring face points and its two original endpoints.
+
+**Step 3:** Vertex coords: $\frac{F + 2R + (n - 3)P}{n}$, $F$: average of face points, $R$: average of edge mid-points, $P$: original points, $n$: degree
+
+Good for quad meshes but bad for triangle meshes.
+
+#### Loop Subdivision
+
+Split each triangle into four, and assign new vertex positions according to weights.
+
+Can be implemented by edge-split and edge-flip
+
+### Simplification
+
+#### Simplification via Edge Collapse
+
+Greedy:
+
+* assign each edge a cost
+* collapse edge with least cost
+* repeat until target number of elements is reached
+
+Particularly effective cost function: quadric error metric
+
+#### Quadric Error Metric
+
+Distance to a collection of triangles: sum of point-plane distances, $\sum N_i \cdot (x - p)$
+
+A query point $(x, y, z)$, a normal $(a, b, c)$, an offset $d := -(p, q, r) \cdot (a, b, c)$
+
+In homogeneous coordinates, let $u = (x, y, z, 1), v = (a, b, c, d)$, then
+
+Signed distance: $u \cdot v = ax + by + cz + d$
+
+Squared distance: $(u \cdot v)^2 = u^T(v v^T)u \overset{\triangle}= u^T K u$
+
+Key idea: matrix $K$ encodes distance to plane.
+
+Measure cost of edge-collapse:
+
+* compute edge midpoint, measure quadric error
+* use point that minimizes quadric error as a new point
+
+### Remeshing
+
+#### "More Delaunay"
+
+Flip edge when $\alpha + \beta > \pi$
+
+#### Improve degree
+
+Edge flip.
+
+(average valance of any triangle mesh is (about) 6)
+
+#### "More round"
+
+Can often improve shape by centering vertices.
+
+Move only in tangent direction (direction orthogonal to surface normal)
+
+#### Isotropic Remeshing Algorithm
+
+Try to make triangles uniform shape & size
+
+Repeat four steps:
+
+- Split any edge over 4/3 mean edge legth
+- Collapse any edge less than 4/5 mean edge length
+- Flip edges to improve vertex degree
+- Centervertices tangentially
 

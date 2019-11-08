@@ -90,6 +90,10 @@ VertexIter HalfedgeMesh::splitEdge(EdgeIter e0) {
             temp_halfedges[i << 1 | 1]->face() = temp_faces[i];
             right[i + 1]->face() = temp_faces[i];
         }
+    } else {
+        h3->next() = h1;
+        right.back()->next() = h3;
+        h3->face() = h1->face() = f1;
     }
     if (!f0->isBoundary()) {
         vector<HalfedgeIter> temp_halfedges;
@@ -127,6 +131,10 @@ VertexIter HalfedgeMesh::splitEdge(EdgeIter e0) {
             temp_halfedges[i << 1 | 1]->face() = temp_faces[i];
             left[i + 1]->face() = temp_faces[i];
         }
+    } else {
+        h2->next() = h0;
+        left.back()->next() = h2;
+        h2->face() = h0->face() = f0;
     }
 
     // showError("splitEdge() not implemented.");
@@ -336,7 +344,7 @@ FaceIter HalfedgeMesh::eraseEdge(EdgeIter e) {
     VertexIter v0 = h0->vertex();
     VertexIter v1 = h1->vertex();
 
-    if (v0->degree() == 2 || v1->degree() == 2)
+    if (v0->degree() + int(v0->isBoundary()) == 2 || v1->degree() + int(v1->isBoundary()) == 2)
         return f0;
 
     int rightSize = 0;
