@@ -7,56 +7,435 @@
 namespace CMU462 {
 
 VertexIter HalfedgeMesh::splitEdge(EdgeIter e0) {
-  // TODO: (meshEdit)
-  // This method should split the given edge and return an iterator to the
-  // newly inserted vertex. The halfedge of this vertex should point along
-  // the edge that was split, rather than the new edges.
+    // This method should split the given edge and return an iterator to the
+    // newly inserted vertex. The halfedge of this vertex should point along
+    // the edge that was split, rather than the new edges.
 
-  showError("splitEdge() not implemented.");
-  return VertexIter();
+    vector<HalfedgeIter> left, right;
+    vector<VertexIter> verts;
+
+    HalfedgeIter h0 = e0->halfedge();
+    HalfedgeIter h1 = h0->twin();
+    FaceIter f0 = h0->face();
+    FaceIter f1 = h1->face();
+
+    right.push_back(h1);
+    for (HalfedgeIter h = h1->next(); h != h1; h = h->next()) {
+        right.push_back(h);
+        verts.push_back(h->vertex());
+    }
+    left.push_back(h0);
+    for (HalfedgeIter h = h0->next(); h != h0; h = h->next()) {
+        left.push_back(h);
+        verts.push_back(h->vertex());
+    }
+
+    VertexIter v = newVertex();
+    VertexIter v0 = h0->vertex();
+    VertexIter v1 = h1->vertex();
+    v->position = (v0->position + v1->position) / 2;
+
+    EdgeIter e = newEdge();
+    HalfedgeIter h2 = newHalfedge();
+    HalfedgeIter h3 = newHalfedge();
+
+    h1->twin() = h2;
+    h2->twin() = h1;
+    h0->twin() = h3;
+    h3->twin() = h0;
+    h2->vertex() = v;
+    h3->vertex() = v;
+
+    h0->edge() = e;
+    h1->edge() = e0;
+    h2->edge() = e0;
+    h3->edge() = e;
+    e->halfedge() = h0;
+    e0->halfedge() = h1;
+    v->halfedge() = h2;
+
+    if (!f1->isBoundary()) {
+        vector<HalfedgeIter> temp_halfedges;
+        vector<FaceIter> temp_faces;
+
+        temp_halfedges.push_back(h3);
+        for (int i = 1; i < right.size() - 1; i++) {
+            EdgeIter ne = newEdge();
+            HalfedgeIter nh0 = newHalfedge();
+            HalfedgeIter nh1 = newHalfedge();
+            ne->halfedge() = nh0;
+
+            nh0->twin() = nh1;
+            nh1->twin() = nh0;
+            nh0->vertex() = verts[i];
+            nh1->vertex() = v;
+            nh0->edge() = ne;
+            nh1->edge() = ne;
+
+            temp_halfedges.push_back(nh0);
+            temp_halfedges.push_back(nh1);
+
+            FaceIter nf = newFace();
+            temp_faces.push_back(nf);
+        }
+        temp_halfedges.push_back(h1);
+        temp_faces.push_back(f1);
+
+        for (int i = 0; i < temp_faces.size(); i++) {
+            temp_faces[i]->halfedge() = temp_halfedges[i << 1];
+            temp_halfedges[i << 1]->next() = right[i + 1];
+            right[i + 1]->next() = temp_halfedges[i << 1 | 1];
+            temp_halfedges[i << 1 | 1]->next() = temp_halfedges[i << 1];
+            temp_halfedges[i << 1]->face() = temp_faces[i];
+            temp_halfedges[i << 1 | 1]->face() = temp_faces[i];
+            right[i + 1]->face() = temp_faces[i];
+        }
+    }
+    if (!f0->isBoundary()) {
+        vector<HalfedgeIter> temp_halfedges;
+        vector<FaceIter> temp_faces;
+
+        temp_halfedges.push_back(h2);
+        for (int i = 0; i < left.size() - 2; i++) {
+            EdgeIter ne = newEdge();
+            HalfedgeIter nh0 = newHalfedge();
+            HalfedgeIter nh1 = newHalfedge();
+            ne->halfedge() = nh0;
+
+            nh0->twin() = nh1;
+            nh1->twin() = nh0;
+            nh0->vertex() = verts[i + right.size()];
+            nh1->vertex() = v;
+            nh0->edge() = ne;
+            nh1->edge() = ne;
+
+            temp_halfedges.push_back(nh0);
+            temp_halfedges.push_back(nh1);
+
+            FaceIter nf = newFace();
+            temp_faces.push_back(nf);
+        }
+        temp_halfedges.push_back(h0);
+        temp_faces.push_back(f0);
+
+        for (int i = 0; i < temp_faces.size(); i++) {
+            temp_faces[i]->halfedge() = temp_halfedges[i << 1];
+            temp_halfedges[i << 1]->next() = left[i + 1];
+            left[i + 1]->next() = temp_halfedges[i << 1 | 1];
+            temp_halfedges[i << 1 | 1]->next() = temp_halfedges[i << 1];
+            temp_halfedges[i << 1]->face() = temp_faces[i];
+            temp_halfedges[i << 1 | 1]->face() = temp_faces[i];
+            left[i + 1]->face() = temp_faces[i];
+        }
+    }
+
+    // showError("splitEdge() not implemented.");
+    return v;
 }
 
 VertexIter HalfedgeMesh::collapseEdge(EdgeIter e) {
-  // TODO: (meshEdit)
-  // This method should collapse the given edge and return an iterator to
-  // the new vertex created by the collapse.
+    // This method should collapse the given edge and return an iterator to
+    // the new vertex created by the collapse.
 
-  showError("collapseEdge() not implemented.");
-  return VertexIter();
+    // if (e->isBoundary()) return e->halfedge()->vertex();
+
+    HalfedgeIter h0 = e->halfedge();
+    HalfedgeIter h1 = h0->twin();
+    FaceIter f0 = h0->face();
+    FaceIter f1 = h1->face();
+
+    if (faces.size() - (f0->degree() == 3 ? 1 : 0) - (f1->degree() == 3 ? 1 : 0) <= 2)
+        return h0->vertex();
+
+    VertexIter v = newVertex();
+    VertexIter v0 = h0->vertex();
+    VertexIter v1 = h1->vertex();
+    v->position = (v0->position + v1->position) / 2;
+
+    vector<HalfedgeIter> up, down;
+    for (HalfedgeIter h = h1->next(); h->twin() != h1; h = h->twin()->next()) {
+        up.push_back(h);
+        up.push_back(h->twin());
+        h->vertex() = v;
+        v->halfedge() = h;
+    }
+    for (HalfedgeIter h = h0->next(); h->twin() != h0; h = h->twin()->next()) {
+        down.push_back(h);
+        down.push_back(h->twin());
+        h->vertex() = v;
+        v->halfedge() = h;
+    }
+
+    up.back()->next() = down[0];
+    down.back()->next() = up[0];
+    h0->face()->halfedge() = down[0];
+    h1->face()->halfedge() = up[0];
+
+    {
+        vector<HalfedgeIter> temp;
+        HalfedgeIter h = h1->next();
+        do {
+            temp.push_back(h);
+            h = h->next();
+        } while (h != up[0]);
+
+        if (temp.size() == 2) {
+            VertexIter vl = temp[1]->vertex();
+            HalfedgeIter hl = temp[1]->twin()->next();
+            temp[0]->next() = hl;
+            vl->halfedge() = hl;
+
+            HalfedgeIter hn = hl;
+            while (hn->next() != temp[1]->twin()) hn = hn->next();
+            hn->next() = temp[0];
+            v->halfedge() = temp[0];
+
+            FaceIter fo = temp[0]->face();
+            temp[0]->face() = hn->face();
+            hn->face()->halfedge() = hn;
+
+            deleteFace(fo);
+            deleteEdge(temp[1]->edge());
+            deleteHalfedge(temp[1]->twin());
+            deleteHalfedge(temp[1]);
+        }
+    }
+    {
+        vector<HalfedgeIter> temp;
+        HalfedgeIter h = h0->next();
+        do {
+            temp.push_back(h);
+            h = h->next();
+        } while (h != down[0]);
+
+        if (temp.size() == 2) {
+            VertexIter vr = temp[1]->vertex();
+            HalfedgeIter hr = temp[1]->twin()->next();
+            temp[0]->next() = hr;
+            vr->halfedge() = hr;
+
+            HalfedgeIter hn = hr;
+            while (hn->next() != temp[1]->twin()) hn = hn->next();
+            hn->next() = temp[0];
+            v->halfedge() = temp[0];
+
+            FaceIter fo = temp[0]->face();
+            temp[0]->face() = hn->face();
+            hn->face()->halfedge() = hn;
+
+            deleteFace(fo);
+            deleteEdge(temp[1]->edge());
+            deleteHalfedge(temp[1]->twin());
+            deleteHalfedge(temp[1]);
+        }
+    }
+
+    deleteHalfedge(h0);
+    deleteHalfedge(h1);
+    deleteEdge(e);
+    deleteVertex(v0);
+    deleteVertex(v1);
+
+    // showError("collapseEdge() not implemented.");
+    return v;
 }
 
 VertexIter HalfedgeMesh::collapseFace(FaceIter f) {
-  // TODO: (meshEdit)
-  // This method should collapse the given face and return an iterator to
-  // the new vertex created by the collapse.
-  showError("collapseFace() not implemented.");
-  return VertexIter();
+    // This method should collapse the given face and return an iterator to
+    // the new vertex created by the collapse.
+
+    if (f->isBoundary())
+        return f->halfedge()->vertex();
+
+    vector<EdgeIter> edges;
+    Vector3D pos(0);
+    int newFaceCnt = faces.size();
+    {
+        HalfedgeIter h = f->halfedge();
+        do {
+            edges.push_back(h->edge());
+            pos += h->vertex()->position;
+            newFaceCnt -= h->face()->degree() == 3;
+            h = h->next();
+        } while (h != f->halfedge());
+    }
+    pos /= edges.size();
+    edges.pop_back();
+
+    if (newFaceCnt <= 2)
+        return f->halfedge()->vertex();
+
+    VertexIter v;
+    for (auto e : edges) v = collapseEdge(e);
+    v->position = pos;
+
+    // showError("collapseFace() not implemented.");
+    return v;
 }
 
 FaceIter HalfedgeMesh::eraseVertex(VertexIter v) {
-  // TODO: (meshEdit)
-  // This method should replace the given vertex and all its neighboring
-  // edges and faces with a single face, returning the new face.
+    // This method should replace the given vertex and all its neighboring
+    // edges and faces with a single face, returning the new face.
 
-  return FaceIter();
+    if (v->isBoundary())
+        return v->halfedge()->face();
+
+    if (faces.size() - v->degree() <= 2)
+        return v->halfedge()->face();
+
+    vector<HalfedgeIter> halfedges;
+    vector<VertexIter> verts;
+    vector<FaceIter> faces;
+
+    HalfedgeIter th = v->halfedge();
+    do {
+        HalfedgeIter h;
+        for (h = th->next(); h->next() != th; h = h->next()) {
+            halfedges.push_back(h);
+            verts.push_back(h->vertex());
+        }
+        faces.push_back(th->face());
+        th = h->twin();
+    } while (th != v->halfedge());
+
+    for (int i = 0; i < halfedges.size(); i++) {
+        verts[i]->halfedge() = halfedges[i];
+        halfedges[i]->next() = halfedges[(i + 1) % halfedges.size()];
+        halfedges[i]->face() = faces[0];
+    }
+    faces[0]->halfedge() = halfedges[0];
+    for (int i = 1; i < faces.size(); i++)
+        deleteFace(faces[i]);
+
+    th = v->halfedge();
+    do {
+        HalfedgeIter nh = th->twin()->next();
+        deleteEdge(th->edge());
+        deleteHalfedge(th->twin());
+        deleteHalfedge(th);
+    } while (th != v->halfedge());
+    deleteVertex(v);
+
+    // showError("eraseVertex() not implemented.");
+    return faces[0];
 }
 
 FaceIter HalfedgeMesh::eraseEdge(EdgeIter e) {
-  // TODO: (meshEdit)
-  // This method should erase the given edge and return an iterator to the
-  // merged face.
+    // This method should erase the given edge and return an iterator to the
+    // merged face.
 
-  showError("eraseVertex() not implemented.");
-  return FaceIter();
+    if (e->isBoundary())
+        return e->halfedge()->face();
+
+    vector<HalfedgeIter> halfedges;
+
+    HalfedgeIter h0 = e->halfedge();
+    HalfedgeIter h1 = h0->twin();
+    FaceIter f0 = h0->face();
+    FaceIter f1 = h1->face();
+    VertexIter v0 = h0->vertex();
+    VertexIter v1 = h1->vertex();
+
+    if (v0->degree() == 2 || v1->degree() == 2)
+        return f0;
+
+    int rightSize = 0;
+    for (HalfedgeIter h = h1->next(); h != h1; h = h->next()) {
+        halfedges.push_back(h);
+        ++rightSize;
+    }
+    v0->halfedge() = halfedges[0];
+    for (HalfedgeIter h = h0->next(); h != h0; h = h->next()) {
+        halfedges.push_back(h);
+    }
+    v1->halfedge() = halfedges[rightSize];
+
+    for (int i = 0; i < halfedges.size(); i++) {
+        halfedges[i]->next() = halfedges[(i + 1) % halfedges.size()];
+        halfedges[i]->face() = f0;
+    }
+    f0->halfedge() = halfedges[0];
+
+    deleteHalfedge(h0);
+    deleteHalfedge(h1);
+    deleteEdge(e);
+    deleteFace(f1);
+
+    // showError("eraseEdge() not implemented.");
+    return f0;
 }
 
 EdgeIter HalfedgeMesh::flipEdge(EdgeIter e0) {
-  // TODO: (meshEdit)
-  // This method should flip the given edge and return an iterator to the
-  // flipped edge.
+    // This method should flip the given edge and return an iterator to the
+    // flipped edge.
 
-  showError("flipEdge() not implemented.");
-  return EdgeIter();
+    if (e0->isBoundary()) return e0;
+
+    vector<HalfedgeIter> left, right, outer;
+    vector<VertexIter> verts;
+    vector<EdgeIter> edges;
+
+    HalfedgeIter h0 = e0->halfedge();
+    HalfedgeIter h1 = h0->twin();
+    FaceIter f0 = h0->face();
+    FaceIter f1 = h1->face();
+
+    right.push_back(h1);
+    for (HalfedgeIter h = h1->next(); h != h1; h = h->next()) {
+        right.push_back(h);
+        outer.push_back(h->twin());
+        verts.push_back(h->vertex());
+        edges.push_back(h->edge());
+    }
+    left.push_back(h0);
+    for (HalfedgeIter h = h0->next(); h != h0; h = h->next()) {
+        left.push_back(h);
+        outer.push_back(h->twin());
+        verts.push_back(h->vertex());
+        edges.push_back(h->edge());
+    }
+
+    VertexIter v0 = verts[1];
+    VertexIter v1 = verts[right.size()];
+
+    {
+        HalfedgeIter h = v0->halfedge();
+        do {
+            h = h->twin();
+            if (h->vertex() == v1)
+                return e0;
+            h = h->next();
+        } while (h != v0->halfedge());
+    }
+
+    {
+        int i = 1;
+        for (HalfedgeIter h = h1->next(); h != h1; h = h->next(), i++) {
+            h->twin() = outer[i];
+            outer[i]->twin() = h;
+            h->vertex() = verts[i];
+            verts[i]->halfedge() = h;
+            h->face() = f1;
+            f1->halfedge() = h;
+            h->edge() = edges[i];
+            edges[i]->halfedge() = h;
+        }
+        for (HalfedgeIter h = h0->next(); h != h0; h = h->next(), i = (i + 1) % outer.size()) {
+            h->twin() = outer[i];
+            outer[i]->twin() = h;
+            h->vertex() = verts[i];
+            verts[i]->halfedge() = h;
+            h->face() = f0;
+            f0->halfedge() = h;
+            h->edge() = edges[i];
+            edges[i]->halfedge() = h;
+        }
+    }
+    h0->vertex() = v0;
+    h1->vertex() = v1;
+
+    // showError("flipEdge() not implemented.");
+    return e0;
 }
 
 void HalfedgeMesh::subdivideQuad(bool useCatmullClark) {
@@ -250,40 +629,220 @@ void HalfedgeMesh::buildSubdivisionFaceList(vector<vector<Index> >& subDFaces) {
 }
 
 FaceIter HalfedgeMesh::bevelVertex(VertexIter v) {
-  // TODO This method should replace the vertex v with a face, corresponding to
-  // a bevel operation. It should return the new face.  NOTE: This method is
-  // responsible for updating the *connectivity* of the mesh only---it does not
-  // need to update the vertex positions.  These positions will be updated in
-  // HalfedgeMesh::bevelVertexComputeNewPositions (which you also have to
-  // implement!)
+    // This method should replace the vertex v with a face, corresponding to
+    // a bevel operation. It should return the new face.  NOTE: This method is
+    // responsible for updating the *connectivity* of the mesh only---it does not
+    // need to update the vertex positions.  These positions will be updated in
+    // HalfedgeMesh::bevelVertexComputeNewPositions (which you also have to
+    // implement!)
 
-  showError("bevelVertex() not implemented.");
-  return facesBegin();
+    if (v->degree() <= 2) {
+        showError("Bevel a vertex with degree no-greater than 2");
+        return v->halfedge()->face();
+    }
+
+    vector<HalfedgeIter> halfedges, inside;
+    vector<VertexIter> verts;
+    HalfedgeIter th = v->halfedge();
+    do {
+        th = th->twin();
+        halfedges.push_back(th);
+        th = th->next();
+        halfedges.push_back(th);
+
+        VertexIter nv = newVertex();
+        nv->position = v->position;
+        verts.push_back(nv);
+        inside.push_back(newHalfedge());
+    } while (th != v->halfedge());
+
+    FaceIter f = newFace();
+    f->halfedge() = inside[0];
+
+    int deg = v->degree();
+    for (int i = 0; i < deg; i++) {
+        HalfedgeIter nh = newHalfedge();
+        EdgeIter ne = newEdge();
+
+        nh->twin() = inside[i];
+        inside[i]->twin() = nh;
+        nh->edge() = inside[i]->edge() = ne;
+        ne->halfedge() = nh;
+
+        nh->vertex() = verts[i];
+        verts[i]->halfedge() = nh;
+
+        inside[i]->vertex() = verts[(i + 1) % deg];
+        halfedges[i << 1 | 1]->vertex() = verts[(i + 1) % deg];
+
+        halfedges[i << 1]->next() = nh;
+        nh->next() = halfedges[i << 1 | 1];
+        inside[i]->next() = inside[(i + deg - 1) % deg];
+
+        inside[i]->face() = f;
+        nh->face() = halfedges[i << 1]->face();
+    }
+
+    deleteVertex(v);
+
+    // showError("bevelVertex() not implemented.");
+    return f;
 }
 
 FaceIter HalfedgeMesh::bevelEdge(EdgeIter e) {
-  // TODO This method should replace the edge e with a face, corresponding to a
-  // bevel operation. It should return the new face.  NOTE: This method is
-  // responsible for updating the *connectivity* of the mesh only---it does not
-  // need to update the vertex positions.  These positions will be updated in
-  // HalfedgeMesh::bevelEdgeComputeNewPositions (which you also have to
-  // implement!)
+    // This method should replace the edge e with a face, corresponding to a
+    // bevel operation. It should return the new face.  NOTE: This method is
+    // responsible for updating the *connectivity* of the mesh only---it does not
+    // need to update the vertex positions.  These positions will be updated in
+    // HalfedgeMesh::bevelEdgeComputeNewPositions (which you also have to
+    // implement!)
 
-  showError("bevelEdge() not implemented.");
-  return facesBegin();
+    HalfedgeIter h0 = e->halfedge();
+    HalfedgeIter h1 = h0->twin();
+
+    if (h0->vertex()->degree() + h1->vertex()->degree() - 2 <= 2) {
+        showError("Bevel an edge with degree no-greater than 2");
+        return e->halfedge()->face();
+    }
+
+    vector<HalfedgeIter> halfedges, inside;
+    vector<VertexIter> verts;
+
+    HalfedgeIter th = h0->next();
+    do {
+        th = th->twin();
+        halfedges.push_back(th);
+        th = th->next();
+        halfedges.push_back(th);
+    } while (th != h1);
+    halfedges.pop_back();
+    th = h1->next();
+    halfedges.push_back(th);
+    do {
+        th = th->twin();
+        halfedges.push_back(th);
+        th = th->next();
+        halfedges.push_back(th);
+    } while (th != h0);
+    halfedges.pop_back();
+    halfedges.push_back(h0->next());
+
+    int deg = h0->vertex()->degree() + h1->vertex()->degree() - 2;
+    for (int i = 0; i < deg; i++) {
+        verts.push_back(newVertex());
+        inside.push_back(newHalfedge());
+    }
+
+    FaceIter f = newFace();
+    f->halfedge() = inside[0];
+    for (int i = 0; i < deg; i++) {
+        HalfedgeIter nh = newHalfedge();
+        EdgeIter ne = newEdge();
+
+        nh->twin() = inside[i];
+        inside[i]->twin() = nh;
+        nh->edge() = inside[i]->edge() = ne;
+        ne->halfedge() = nh;
+
+        nh->vertex() = verts[i];
+        verts[i]->halfedge() = nh;
+
+        verts[(i + 1) % deg]->position = halfedges[i << 1 | 1]->vertex()->position;
+        inside[i]->vertex() = verts[(i + 1) % deg];
+        halfedges[i << 1 | 1]->vertex() = verts[(i + 1) % deg];
+
+        halfedges[i << 1]->next() = nh;
+        nh->next() = halfedges[i << 1 | 1];
+        inside[i]->next() = inside[(i + deg - 1) % deg];
+
+        inside[i]->face() = f;
+        nh->face() = halfedges[i << 1]->face();
+        halfedges[i << 1]->face()->halfedge() = nh;
+    }
+
+    deleteVertex(h0->vertex());
+    deleteVertex(h1->vertex());
+    deleteEdge(e);
+    deleteHalfedge(h0);
+    deleteHalfedge(h1);
+
+    // showError("bevelEdge() not implemented.");
+    return f;
 }
 
 FaceIter HalfedgeMesh::bevelFace(FaceIter f) {
-  // TODO This method should replace the face f with an additional, inset face
-  // (and ring of faces around it), corresponding to a bevel operation. It
-  // should return the new face.  NOTE: This method is responsible for updating
-  // the *connectivity* of the mesh only---it does not need to update the vertex
-  // positions.  These positions will be updated in
-  // HalfedgeMesh::bevelFaceComputeNewPositions (which you also have to
-  // implement!)
+    // This method should replace the face f with an additional, inset face
+    // (and ring of faces around it), corresponding to a bevel operation. It
+    // should return the new face.  NOTE: This method is responsible for updating
+    // the *connectivity* of the mesh only---it does not need to update the vertex
+    // positions.  These positions will be updated in
+    // HalfedgeMesh::bevelFaceComputeNewPositions (which you also have to
+    // implement!)
 
-  showError("bevelFace() not implemented.");
-  return facesBegin();
+    if (f->isBoundary()) {
+        showError("Bevel a boundary face");
+        return f;
+    }
+
+    vector<VertexIter> verts;
+    vector<HalfedgeIter> outside, halfedges, inside;
+    vector<FaceIter> faces;
+
+    HalfedgeIter th = f->halfedge();
+    do {
+        outside.push_back(th);
+        verts.push_back(newVertex());
+        th = th->next();
+    } while (th != f->halfedge());
+
+    int deg = f->degree();
+    for (int i = 0; i < deg; i++) {
+        halfedges.push_back(newHalfedge());
+        halfedges.push_back(newHalfedge());
+        halfedges.push_back(newHalfedge());
+
+        faces.push_back(newFace());
+        faces[i]->halfedge() = outside[i];
+        outside[i]->face() = faces[i];
+        halfedges[i * 3]->face() = faces[i];
+        halfedges[i * 3 + 1]->face() = faces[i];
+        halfedges[i * 3 + 2]->face() = faces[i];
+
+        inside.push_back(newHalfedge());
+    }
+
+    for (int i = 0; i < deg; i++) {
+        EdgeIter ne = newEdge();
+
+        outside[i]->next() = halfedges[i * 3];
+        halfedges[i * 3]->next() = halfedges[i * 3 + 1];
+        halfedges[i * 3 + 1]->next() = halfedges[i * 3 + 2];
+        halfedges[i * 3 + 2]->next() = outside[i];
+        inside[i]->next() = inside[(i + 1) % deg];
+
+        inside[i]->twin() = halfedges[i * 3 + 1];
+        halfedges[i * 3 + 1]->twin() = inside[i];
+        inside[i]->edge() = halfedges[i * 3 + 1]->edge() = ne;
+        ne->halfedge() = inside[i];
+        inside[i]->face() = f;
+        f->halfedge() = inside[i];
+
+        halfedges[i * 3]->vertex() = outside[(i + 1) % deg]->vertex();
+        halfedges[i * 3 + 1]->vertex() = verts[(i + 1) % deg];
+        halfedges[i * 3 + 2]->vertex() = verts[i];
+        inside[i]->vertex() = verts[i];
+        verts[i]->halfedge() = inside[i];
+        verts[i]->position = outside[i]->vertex()->position;
+
+        EdgeIter me = newEdge();
+        me->halfedge() = halfedges[i * 3];
+        halfedges[i * 3]->twin() = halfedges[((i + 1) * 3 + 2) % (3 * deg)];
+        halfedges[((i + 1) * 3 + 2) % (3 * deg)]->twin() = halfedges[i * 3];
+        halfedges[i * 3]->edge() = halfedges[((i + 1) * 3 + 2) % (3 * deg)]->edge() = me;
+    }
+
+    // showError("bevelFace() not implemented.");
+    return f;
 }
 
 
@@ -291,66 +850,138 @@ void HalfedgeMesh::bevelFaceComputeNewPositions(
     vector<Vector3D>& originalVertexPositions,
     vector<HalfedgeIter>& newHalfedges, double normalShift,
     double tangentialInset) {
-  // TODO Compute new vertex positions for the vertices of the beveled face.
-  //
-  // These vertices can be accessed via newHalfedges[i]->vertex()->position for
-  // i = 1, ..., newHalfedges.size()-1.
-  //
-  // The basic strategy here is to loop over the list of outgoing halfedges,
-  // and use the preceding and next vertex position from the original mesh
-  // (in the originalVertexPositions array) to compute an offset vertex
-  // position.
-  //
-  // Note that there is a 1-to-1 correspondence between halfedges in
-  // newHalfedges and vertex positions
-  // in orig.  So, you can write loops of the form
-  //
-  // for( int i = 0; i < newHalfedges.size(); hs++ )
-  // {
-  //    Vector3D pi = originalVertexPositions[i]; // get the original vertex
-  //    position correponding to vertex i
-  // }
-  //
+    // Compute new vertex positions for the vertices of the beveled face.
+    //
+    // These vertices can be accessed via newHalfedges[i]->vertex()->position for
+    // i = 1, ..., newHalfedges.size()-1.
+    //
+    // The basic strategy here is to loop over the list of outgoing halfedges,
+    // and use the preceding and next vertex position from the original mesh
+    // (in the originalVertexPositions array) to compute an offset vertex
+    // position.
+    //
+    // Note that there is a 1-to-1 correspondence between halfedges in
+    // newHalfedges and vertex positions
+    // in orig.  So, you can write loops of the form
+    //
+    // for( int i = 0; i < newHalfedges.size(); hs++ )
+    // {
+    //    Vector3D pi = originalVertexPositions[i]; // get the original vertex
+    //    position correponding to vertex i
+    // }
+    //
 
+    Vector3D c0(0), c1(0);
+    vector<Vector3D> orig;
+    for (auto e : newHalfedges) {
+        orig.push_back(e->twin()->vertex()->position);
+        c0 += orig.back();
+        c1 += e->vertex()->position;
+    }
+    c0 /= newHalfedges.size();
+    c1 /= newHalfedges.size();
+
+    Vector3D v0 = orig[1] - orig[0];
+    Vector3D v1 = orig[2] - orig[1];
+    Vector3D normal = cross(v1, v0);
+    normal.normalize();
+    normal *= normalShift;
+
+    vector<Vector3D> delta;
+    for (int i = 0; i < newHalfedges.size(); i++) {
+        Vector3D dir = c0 - orig[i];
+        // dir.normalize();
+        dir *= tangentialInset;
+        dir += normal;
+        if (tangentialInset > 0 && (newHalfedges[i]->vertex()->position - c1).norm2() <= dir.norm2())
+            return;
+        if (tangentialInset < 0 && (newHalfedges[i]->vertex()->position - orig[i]).norm2() <= dir.norm2())
+            return;
+        delta.push_back(dir);
+    }
+
+    for (int i = 0; i < newHalfedges.size(); i++) {
+        newHalfedges[i]->vertex()->position += delta[i];
+    }
 }
 
 void HalfedgeMesh::bevelVertexComputeNewPositions(
     Vector3D originalVertexPosition, vector<HalfedgeIter>& newHalfedges,
     double tangentialInset) {
-  // TODO Compute new vertex positions for the vertices of the beveled vertex.
-  //
-  // These vertices can be accessed via newHalfedges[i]->vertex()->position for
-  // i = 1, ..., hs.size()-1.
-  //
-  // The basic strategy here is to loop over the list of outgoing halfedges,
-  // and use the preceding and next vertex position from the original mesh
-  // (in the orig array) to compute an offset vertex position.
+    // Compute new vertex positions for the vertices of the beveled vertex.
+    //
+    // These vertices can be accessed via newHalfedges[i]->vertex()->position for
+    // i = 1, ..., hs.size()-1.
+    //
+    // The basic strategy here is to loop over the list of outgoing halfedges,
+    // and use the preceding and next vertex position from the original mesh
+    // (in the orig array) to compute an offset vertex position.
 
+    vector<Vector3D> orig;
+    for (auto e : newHalfedges) {
+        orig.push_back(e->twin()->vertex()->position);
+    }
+
+    vector<Vector3D> delta;
+    for (int i = 0; i < newHalfedges.size(); i++) {
+        Vector3D dir = orig[i] - originalVertexPosition;
+        dir.normalize();
+        dir *= tangentialInset;
+        if (tangentialInset > 0 && (newHalfedges[i]->vertex()->position - orig[i]).norm2() <= dir.norm2())
+            return;
+        if (tangentialInset < 0 && (newHalfedges[i]->vertex()->position - originalVertexPosition).norm2() <= dir.norm2())
+            return;
+        delta.push_back(dir);
+    }
+
+    for (int i = 0; i < newHalfedges.size(); i++) {
+        newHalfedges[i]->vertex()->position += delta[i];
+    }
 }
 
 void HalfedgeMesh::bevelEdgeComputeNewPositions(
     vector<Vector3D>& originalVertexPositions,
     vector<HalfedgeIter>& newHalfedges, double tangentialInset) {
-  // TODO Compute new vertex positions for the vertices of the beveled edge.
-  //
-  // These vertices can be accessed via newHalfedges[i]->vertex()->position for
-  // i = 1, ..., newHalfedges.size()-1.
-  //
-  // The basic strategy here is to loop over the list of outgoing halfedges,
-  // and use the preceding and next vertex position from the original mesh
-  // (in the orig array) to compute an offset vertex position.
-  //
-  // Note that there is a 1-to-1 correspondence between halfedges in
-  // newHalfedges and vertex positions
-  // in orig.  So, you can write loops of the form
-  //
-  // for( int i = 0; i < newHalfedges.size(); i++ )
-  // {
-  //    Vector3D pi = originalVertexPositions[i]; // get the original vertex
-  //    position correponding to vertex i
-  // }
-  //
+    // Compute new vertex positions for the vertices of the beveled edge.
+    //
+    // These vertices can be accessed via newHalfedges[i]->vertex()->position for
+    // i = 1, ..., newHalfedges.size()-1.
+    //
+    // The basic strategy here is to loop over the list of outgoing halfedges,
+    // and use the preceding and next vertex position from the original mesh
+    // (in the orig array) to compute an offset vertex position.
+    //
+    // Note that there is a 1-to-1 correspondence between halfedges in
+    // newHalfedges and vertex positions
+    // in orig.  So, you can write loops of the form
+    //
+    // for( int i = 0; i < newHalfedges.size(); i++ )
+    // {
+    //    Vector3D pi = originalVertexPositions[i]; // get the original vertex
+    //    position correponding to vertex i
+    // }
+    //
 
+    vector<Vector3D> orig;
+    for (auto e : newHalfedges) {
+        orig.push_back(e->twin()->vertex()->position);
+    }
+
+    vector<Vector3D> delta;
+    for (int i = 0; i < newHalfedges.size(); i++) {
+        Vector3D dir = orig[i] - originalVertexPositions[i];
+        dir.normalize();
+        dir *= tangentialInset;
+        if (tangentialInset > 0 && (newHalfedges[i]->vertex()->position - orig[i]).norm2() <= dir.norm2())
+            return;
+        if (tangentialInset < 0 && (newHalfedges[i]->vertex()->position - originalVertexPositions[i]).norm2() <= dir.norm2())
+            return;
+        delta.push_back(dir);
+    }
+
+    for (int i = 0; i < newHalfedges.size(); i++) {
+        newHalfedges[i]->vertex()->position += delta[i];
+    }
 }
 
 void HalfedgeMesh::splitPolygons(vector<FaceIter>& fcs) {

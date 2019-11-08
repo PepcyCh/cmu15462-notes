@@ -43,5 +43,22 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
   * [x] 8 Alpha Compositing
   * [x] 9 Draw Something!!!
 * [ ] 2.0 MeshEdit
+  * [x] Local Operations
+    * [x] `VertexBevel`
+    * [x] `EdgeBevel`
+    * [x] `FaceBevel`
+    * [x] `EraseVertex`
+    * [x] `EraseEdge`
+    * [x] `EdgeCollapse`
+    * [x] `FaceCollapse`
+    * [x] `EdgeFlip`
+    * [x] `EdgeSplit`
+  * [ ] Global Operations
+    * [ ] `Triangulation`
+    * [ ] `LinearSubdivision`
+    * [ ] `CatmullClarkSubdivision`
+    * [ ] `LoopSubdivision` - depends on `EdgeSplit` and `EdgeFlip`
+    * [ ] `IsotropicRemeshing` - depends on `EdgeSplit`, `EdgeFlip`, and `EdgeCollapse`
+    * [ ] `Simplification` - depends on `EdgeCollapse`
 * [ ] 3.0 PathTracer
 * [ ] 4.0 Animation
