@@ -16,7 +16,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [x] 08 Depth and Transparency
 * [x] 09 Introduction to Geometry
 * [x] 10 Meshes and Manifolds
-* [ ] 11 Digital Geometry Processing
+* [x] 11 Digital Geometry Processing
 * [ ] 12 Geometric Queries
 * [ ] 13 Spatial Data Structures
 * [ ] 14 Color
