@@ -1103,13 +1103,122 @@ void HalfedgeMesh::bevelEdgeComputeNewPositions(
 }
 
 void HalfedgeMesh::splitPolygons(vector<FaceIter>& fcs) {
-  for (auto f : fcs) splitPolygon(f);
+    for (auto f : fcs) splitPolygon(f);
 }
 
 void HalfedgeMesh::splitPolygon(FaceIter f) {
-    // TODO: (meshedit)
     // Triangulate a polygonal face
-    showError("splitPolygon() not implemented.");
+    int deg = f->degree();
+    if (deg == 3) return;
+
+    vector<VertexIter> verts;
+    vector<HalfedgeIter> inside;
+
+    {
+        HalfedgeIter h = f->halfedge();
+        do {
+            verts.push_back(h->vertex());
+            inside.push_back(h);
+            h = h->next();
+        } while (h != f->halfedge());
+    }
+
+    vector<Vector3D> dirs;
+    for (int i = 0; i < deg; i++)
+        dirs.push_back(verts[(i + 1) % deg]->position - verts[i]->position);
+
+    const static double eps = 1e-9;
+    Vector3D norm = cross(dirs[0], dirs[1]);
+    int R = -1;
+    for (int i = 1; i < deg; i++) {
+        Vector3D temp = cross(dirs[(i + 1) % deg], dirs[i]);
+        if (cross(norm, temp).norm() > eps) {
+            R = (i + 1) % deg;
+            break;
+        }
+    }
+
+    auto link = [&](int i, int j) {
+        EdgeIter e = newEdge();
+        HalfedgeIter h0 = newHalfedge();
+        HalfedgeIter h1 = newHalfedge();
+        FaceIter nf = newFace();
+
+        h0->vertex() = verts[i];
+        h1->vertex() = verts[j];
+
+        h0->twin() = h1;
+        h1->twin() = h0;
+        h0->edge() = h1->edge() = e;
+        e->halfedge() = h0;
+
+        h0->next() = inside[j];
+        inside[(i + deg - 1) % deg]->next() = h0;
+        h1->next() = inside[i];
+        inside[(j + deg - 1) % deg]->next() = h1;
+
+        f->halfedge() = h0;
+        h0->face() = f;
+        nf->halfedge() = h1;
+        h1->face() = nf;
+        int lim = i < j ? j : deg;
+        for (int k = i; k < lim; k++) inside[k]->face() = nf;
+        lim = i < j ? 0 : j;
+        for (int k = 0; k < lim; k++) inside[k]->face() = nf;
+
+        return nf;
+    };
+
+    if (R == -1) { // planar
+        auto norm = f->normal();
+        int concave = -1;
+        for (int i = 0; i < deg; i++) {
+            Vector3D temp = cross(dirs[(i + 1) % deg], dirs[i]);
+            if (cross(norm, temp).norm() > eps) {
+                concave = (i + 1) % deg;
+                break;
+            }
+        }
+
+        if (concave == -1) concave = 0;
+
+        for (int i = 0; i < deg; i++) if (i != concave && (i + 1) % deg != concave && (i + deg - 1) % deg != concave) {
+            Vector3D a = verts[concave]->position;
+            Vector3D b = verts[i]->position;
+            bool inter = false;
+            for (int j = 0; j < deg; j++) {
+                Vector3D sa = cross(dirs[i], a - verts[i]->position);
+                Vector3D sb = cross(dirs[i], b - verts[i]->position);
+                Vector3D ta = cross(b - a, verts[i]->position - a);
+                Vector3D tb = cross(b - a, verts[(i + 1) % deg]->position - a);
+                if (dot(sa, sb) < 0 && dot(ta, tb) < 0) {
+                    inter = true;
+                    break;
+                }
+            }
+            if (!inter) {
+                FaceIter nf = link(i, concave);
+                splitPolygon(f);
+                // splitPolygon(nf);
+                break;
+            }
+        }
+    } else {
+        int L = -1;
+        for (int i = deg - 1; i > 0; i--) {
+            Vector3D temp = cross(dirs[(i + 1) % deg], dirs[i]);
+            if (cross(norm, temp).norm() > eps) {
+                L = (i + 1) % deg;
+                break;
+            }
+        }
+
+        FaceIter nf = link(L, R);
+        splitPolygon(f);
+        // splitPolygon(nf);
+    }
+
+    // showError("splitPolygon() not implemented.");
 }
 
 EdgeRecord::EdgeRecord(EdgeIter& _edge) : edge(_edge) {

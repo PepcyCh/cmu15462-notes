@@ -54,7 +54,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
     * [x] `EdgeFlip`
     * [x] `EdgeSplit`
   * [ ] Global Operations
-    * [ ] `Triangulation`
+    * [x] `Triangulation`
     * [x] `LinearSubdivision`
     * [x] `CatmullClarkSubdivision`
     * [x] `LoopSubdivision` - depends on `EdgeSplit` and `EdgeFlip`
