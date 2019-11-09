@@ -91,8 +91,9 @@ VertexIter HalfedgeMesh::splitEdge(EdgeIter e0) {
             right[i + 1]->face() = temp_faces[i];
         }
     } else {
-        h3->next() = h1;
-        right.back()->next() = h3;
+        h3->next() = h1->next();
+        h1->next() = h3;
+        right.back()->next() = h1;
         h3->face() = h1->face() = f1;
     }
     if (!f0->isBoundary()) {
@@ -132,8 +133,9 @@ VertexIter HalfedgeMesh::splitEdge(EdgeIter e0) {
             left[i + 1]->face() = temp_faces[i];
         }
     } else {
-        h2->next() = h0;
-        left.back()->next() = h2;
+        h2->next() = h0->next();
+        h0->next() = h2;
+        left.back()->next() = h0;
         h2->face() = h0->face() = f0;
     }
 
@@ -463,7 +465,7 @@ void HalfedgeMesh::subdivideQuad(bool useCatmullClark) {
   // efficient) than incrementally modifying the existing one.  These steps are
   // detailed below.
 
-  // TODO Step I: Compute the vertex positions for the subdivided mesh.  Here
+  // Step I: Compute the vertex positions for the subdivided mesh.  Here
   // we're
   // going to do something a little bit strange: since we will have one vertex
   // in
@@ -473,14 +475,13 @@ void HalfedgeMesh::subdivideQuad(bool useCatmullClark) {
   // edges,
   // and faces of the original mesh.  These positions can then be conveniently
   // copied into the new, subdivided mesh.
-  // [See subroutines for actual "TODO"s]
   if (useCatmullClark) {
     computeCatmullClarkPositions();
   } else {
     computeLinearSubdivisionPositions();
   }
 
-  // TODO Step II: Assign a unique index (starting at 0) to each vertex, edge,
+  // Step II: Assign a unique index (starting at 0) to each vertex, edge,
   // and
   // face in the original mesh.  These indices will be the indices of the
   // vertices
@@ -492,10 +493,9 @@ void HalfedgeMesh::subdivideQuad(bool useCatmullClark) {
   // plus edges plus faces in the original mesh.  Basically we just need a
   // one-to-one
   // mapping between original mesh elements and subdivided mesh vertices.
-  // [See subroutine for actual "TODO"s]
   assignSubdivisionIndices();
 
-  // TODO Step III: Build a list of quads in the new (subdivided) mesh, as
+  // Step III: Build a list of quads in the new (subdivided) mesh, as
   // tuples of
   // the element indices defined above.  In other words, each new quad should be
   // of
@@ -505,13 +505,12 @@ void HalfedgeMesh::subdivideQuad(bool useCatmullClark) {
   // here: (i,j,k,l) is not the same as (l,k,j,i).  Indices of new faces should
   // circulate in the same direction as old faces (think about the right-hand
   // rule).
-  // [See subroutines for actual "TODO"s]
   vector<vector<Index> > subDFaces;
   vector<Vector3D> subDVertices;
   buildSubdivisionFaceList(subDFaces);
   buildSubdivisionVertexList(subDVertices);
 
-  // TODO Step IV: Pass the list of vertices and quads to a routine that clears
+  // Step IV: Pass the list of vertices and quads to a routine that clears
   // the
   // internal data for this halfedge mesh, and builds new halfedge data from
   // scratch,
@@ -529,16 +528,35 @@ void HalfedgeMesh::subdivideQuad(bool useCatmullClark) {
  * centroids.
  */
 void HalfedgeMesh::computeLinearSubdivisionPositions() {
-  // TODO For each vertex, assign Vertex::newPosition to
-  // its original position, Vertex::position.
+    // For each vertex, assign Vertex::newPosition to
+    // its original position, Vertex::position.
+    for (auto& v : vertices) {
+        v.newPosition = v.position;
+    }
 
-  // TODO For each edge, assign the midpoint of the two original
-  // positions to Edge::newPosition.
+    // For each edge, assign the midpoint of the two original
+    // positions to Edge::newPosition.
+    for (auto& e : edges) {
+        Vector3D v0 = e.halfedge()->vertex()->position;
+        Vector3D v1 = e.halfedge()->twin()->vertex()->position;
+        e.newPosition = (v0 + v1) / 2;
+    }
 
-  // TODO For each face, assign the centroid (i.e., arithmetic mean)
-  // of the original vertex positions to Face::newPosition.  Note
-  // that in general, NOT all faces will be triangles!
-  showError("computeLinearSubdivisionPositions() not implemented.");
+    // For each face, assign the centroid (i.e., arithmetic mean)
+    // of the original vertex positions to Face::newPosition.  Note
+    // that in general, NOT all faces will be triangles!
+    for (auto& f : faces) {
+        Vector3D center(0);
+        HalfedgeIter h = f.halfedge();
+        do {
+            center += h->vertex()->position;
+            h = h->next();
+        } while (h != f.halfedge());
+        center /= f.degree();
+        f.newPosition = center;
+    }
+
+    // showError("computeLinearSubdivisionPositions() not implemented.");
 }
 
 /**
@@ -550,18 +568,64 @@ void HalfedgeMesh::computeLinearSubdivisionPositions() {
  * the Catmull-Clark rules for subdivision.
  */
 void HalfedgeMesh::computeCatmullClarkPositions() {
-  // TODO The implementation for this routine should be
-  // a lot like HalfedgeMesh::computeLinearSubdivisionPositions(),
-  // except that the calculation of the positions themsevles is
-  // slightly more involved, using the Catmull-Clark subdivision
-  // rules. (These rules are outlined in the Developer Manual.)
+    // The implementation for this routine should be
+    // a lot like HalfedgeMesh::computeLinearSubdivisionPositions(),
+    // except that the calculation of the positions themsevles is
+    // slightly more involved, using the Catmull-Clark subdivision
+    // rules. (These rules are outlined in the Developer Manual.)
 
-  // TODO face
+    // face
+    for (auto& f : faces) {
+        Vector3D center(0);
+        HalfedgeIter h = f.halfedge();
+        do {
+            center += h->vertex()->position;
+            h = h->next();
+        } while (h != f.halfedge());
+        center /= f.degree();
+        f.newPosition = center;
+    }
 
-  // TODO edges
+    // edges
+    for (auto& e : edges) {
+        HalfedgeIter h0 = e.halfedge();
+        HalfedgeIter h1 = h0->twin();
+        Vector3D v0 = h0->vertex()->position;
+        Vector3D v1 = h1->vertex()->position;
+        Vector3D v2, v3;
+        if (!h0->isBoundary())
+            v2 = h0->face()->newPosition;
+        else
+            v2 = h1->face()->newPosition;
+        if (!h1->isBoundary())
+            v3 = h1->face()->newPosition;
+        else
+            v3 = h0->face()->newPosition;
+        e.newPosition = (v0 + v1 + v2 + v3) / 4;
+    }
 
-  // TODO vertices
-  showError("computeCatmullClarkPositions() not implemented.");
+    // vertices
+    for (auto& v : vertices) {
+        Vector3D F(0), R(0);
+        {
+            HalfedgeIter h = v.halfedge();
+            do {
+                if (!h->face()->isBoundary())
+                    F += h->face()->newPosition;
+                Vector3D v0 = h->vertex()->position;
+                Vector3D v1 = h->twin()->vertex()->position;
+                R += (v0 + v1) / 2;
+                h = h->twin()->next();
+            } while(h != v.halfedge());
+            F /= v.degree();
+            R /= (v.degree() + int(v.isBoundary()));
+        }
+
+        int n = v.degree();
+        v.newPosition = (F + 2 * R + (n - 3) * v.position) / n;
+    }
+
+    // showError("computeCatmullClarkPositions() not implemented.");
 }
 
 /**
@@ -571,15 +635,26 @@ void HalfedgeMesh::computeCatmullClarkPositions() {
  * subdivided using Catmull-Clark (or linear) subdivision.
  */
 void HalfedgeMesh::assignSubdivisionIndices() {
-  // TODO Start a counter at zero; if you like, you can use the
-  // "Index" type (defined in halfedgeMesh.h)
+    // Start a counter at zero; if you like, you can use the
+    // "Index" type (defined in halfedgeMesh.h)
 
-  // TODO Iterate over vertices, assigning values to Vertex::index
+    Index curr = 0;
+    // Iterate over vertices, assigning values to Vertex::index
+    for (auto& v : vertices) {
+        v.index = curr++;
+    }
 
-  // TODO Iterate over edges, assigning values to Edge::index
+    // Iterate over edges, assigning values to Edge::index
+    for (auto& e : edges) {
+        e.index = curr++;
+    }
 
-  // TODO Iterate over faces, assigning values to Face::index
-  showError("assignSubdivisionIndices() not implemented.");
+    // Iterate over faces, assigning values to Face::index
+    for (auto& f : faces) {
+        f.index = curr++;
+    }
+
+    // showError("assignSubdivisionIndices() not implemented.");
 }
 
 /**
@@ -590,17 +665,28 @@ void HalfedgeMesh::assignSubdivisionIndices() {
  * and Face::newPosition.
  */
 void HalfedgeMesh::buildSubdivisionVertexList(vector<Vector3D>& subDVertices) {
-  // TODO Resize the vertex list so that it can hold all the vertices.
+    // Resize the vertex list so that it can hold all the vertices.
+    subDVertices.resize(vertices.size() + edges.size() + faces.size());
 
-  // TODO Iterate over vertices, assigning Vertex::newPosition to the
-  // appropriate location in the new vertex list.
+    // Iterate over vertices, assigning Vertex::newPosition to the
+    // appropriate location in the new vertex list.
+    for (auto& v : vertices) {
+        subDVertices[v.index] = v.newPosition;
+    }
 
-  // TODO Iterate over edges, assigning Edge::newPosition to the appropriate
-  // location in the new vertex list.
+    // Iterate over edges, assigning Edge::newPosition to the appropriate
+    // location in the new vertex list.
+    for (auto& e : edges) {
+        subDVertices[e.index] = e.newPosition;
+    }
 
-  // TODO Iterate over faces, assigning Face::newPosition to the appropriate
-  // location in the new vertex list.
-  showError("buildSubdivisionVertexList() not implemented.");
+    // Iterate over faces, assigning Face::newPosition to the appropriate
+    // location in the new vertex list.
+    for (auto& f : faces) {
+        subDVertices[f.index] = f.newPosition;
+    }
+
+    // showError("buildSubdivisionVertexList() not implemented.");
 }
 
 /**
@@ -615,25 +701,45 @@ void HalfedgeMesh::buildSubdivisionVertexList(vector<Vector3D>& subDVertices) {
  * will look like a bowtie.
  */
 void HalfedgeMesh::buildSubdivisionFaceList(vector<vector<Index> >& subDFaces) {
-  // TODO This routine is perhaps the most tricky step in the construction of
-  // a subdivision mesh (second, perhaps, to computing the actual Catmull-Clark
-  // vertex positions).  Basically what you want to do is iterate over faces,
-  // then for each for each face, append N quads to the list (where N is the
-  // degree of the face).  For this routine, it may be more convenient to simply
-  // append quads to the end of the list (rather than allocating it ahead of
-  // time), though YMMV.  You can of course iterate around a face by starting
-  // with its first halfedge and following the "next" pointer until you get
-  // back to the beginning.  The tricky part is making sure you grab the right
-  // indices in the right order---remember that there are indices on vertices,
-  // edges, AND faces of the original mesh.  All of these should get used.  Also
-  // remember that you must have FOUR indices per face, since you are making a
-  // QUAD mesh!
+    // This routine is perhaps the most tricky step in the construction of
+    // a subdivision mesh (second, perhaps, to computing the actual Catmull-Clark
+    // vertex positions).  Basically what you want to do is iterate over faces,
+    // then for each for each face, append N quads to the list (where N is the
+    // degree of the face).  For this routine, it may be more convenient to simply
+    // append quads to the end of the list (rather than allocating it ahead of
+    // time), though YMMV.  You can of course iterate around a face by starting
+    // with its first halfedge and following the "next" pointer until you get
+    // back to the beginning.  The tricky part is making sure you grab the right
+    // indices in the right order---remember that there are indices on vertices,
+    // edges, AND faces of the original mesh.  All of these should get used.  Also
+    // remember that you must have FOUR indices per face, since you are making a
+    // QUAD mesh!
 
-  // TODO iterate over faces
-  // TODO loop around face
-  // TODO build lists of four indices for each sub-quad
-  // TODO append each list of four indices to face list
-  showError("buildSubdivisionFaceList() not implemented.");
+    // iterate over faces
+    for (auto& f : faces) {
+        if (f.isBoundary())
+            continue;
+
+        // loop around face
+        vector<EdgeIter> fEdges;
+        vector<VertexIter> fVerts;
+        HalfedgeIter h = f.halfedge();
+        do {
+            fEdges.push_back(h->edge());
+            fVerts.push_back(h->vertex());
+            h = h->next();
+        } while (h != f.halfedge());
+
+        int deg = f.degree();
+        for (int i = 0; i < deg; i++) {
+            // build lists of four indices for each sub-quad
+            vector<Index> face = {f.index, fEdges[(i + deg - 1) % deg]->index, fVerts[i]->index, fEdges[i]->index};
+            // append each list of four indices to face list
+            subDFaces.push_back(face);
+        }
+    }
+
+    // showError("buildSubdivisionFaceList() not implemented.");
 }
 
 FaceIter HalfedgeMesh::bevelVertex(VertexIter v) {
@@ -708,6 +814,10 @@ FaceIter HalfedgeMesh::bevelEdge(EdgeIter e) {
     HalfedgeIter h0 = e->halfedge();
     HalfedgeIter h1 = h0->twin();
 
+    if (e->isBoundary()) {
+        showError("Bevel a boundary edge");
+        return e->halfedge()->face();
+    }
     if (h0->vertex()->degree() + h1->vertex()->degree() - 2 <= 2) {
         showError("Bevel an edge with degree no-greater than 2");
         return e->halfedge()->face();
@@ -735,7 +845,7 @@ FaceIter HalfedgeMesh::bevelEdge(EdgeIter e) {
     halfedges.pop_back();
     halfedges.push_back(h0->next());
 
-    int deg = h0->vertex()->degree() + h1->vertex()->degree() - 2;
+    int deg = h0->vertex()->degree() + int(h0->vertex()->isBoundary()) + h1->vertex()->degree() + int(h1->vertex()->isBoundary()) - 2;
     for (int i = 0; i < deg; i++) {
         verts.push_back(newVertex());
         inside.push_back(newHalfedge());
@@ -997,9 +1107,9 @@ void HalfedgeMesh::splitPolygons(vector<FaceIter>& fcs) {
 }
 
 void HalfedgeMesh::splitPolygon(FaceIter f) {
-  // TODO: (meshedit) 
-  // Triangulate a polygonal face
-  showError("splitPolygon() not implemented.");
+    // TODO: (meshedit)
+    // Triangulate a polygonal face
+    showError("splitPolygon() not implemented.");
 }
 
 EdgeRecord::EdgeRecord(EdgeIter& _edge) : edge(_edge) {
@@ -1017,53 +1127,109 @@ void MeshResampler::upsample(HalfedgeMesh& mesh)
 // This routine should increase the number of triangles in the mesh using Loop
 // subdivision.
 {
-  // TODO: (meshEdit)
-  // Compute new positions for all the vertices in the input mesh, using
-  // the Loop subdivision rule, and store them in Vertex::newPosition.
-  // -> At this point, we also want to mark each vertex as being a vertex of the
-  //    original mesh.
-  // -> Next, compute the updated vertex positions associated with edges, and
-  //    store it in Edge::newPosition.
-  // -> Next, we're going to split every edge in the mesh, in any order.  For
-  //    future reference, we're also going to store some information about which
-  //    subdivided edges come from splitting an edge in the original mesh, and
-  //    which edges are new, by setting the flat Edge::isNew. Note that in this
-  //    loop, we only want to iterate over edges of the original mesh.
-  //    Otherwise, we'll end up splitting edges that we just split (and the
-  //    loop will never end!)
-  // -> Now flip any new edge that connects an old and new vertex.
-  // -> Finally, copy the new vertex positions into final Vertex::position.
+    // Compute new positions for all the vertices in the input mesh, using
+    // the Loop subdivision rule, and store them in Vertex::newPosition.
+    // -> At this point, we also want to mark each vertex as being a vertex of the
+    //    original mesh.
+    // -> Next, compute the updated vertex positions associated with edges, and
+    //    store it in Edge::newPosition.
+    // -> Next, we're going to split every edge in the mesh, in any order.  For
+    //    future reference, we're also going to store some information about which
+    //    subdivided edges come from splitting an edge in the original mesh, and
+    //    which edges are new, by setting the flat Edge::isNew. Note that in this
+    //    loop, we only want to iterate over edges of the original mesh.
+    //    Otherwise, we'll end up splitting edges that we just split (and the
+    //    loop will never end!)
+    // -> Now flip any new edge that connects an old and new vertex.
+    // -> Finally, copy the new vertex positions into final Vertex::position.
 
-  // Each vertex and edge of the original surface can be associated with a
-  // vertex in the new (subdivided) surface.
-  // Therefore, our strategy for computing the subdivided vertex locations is to
-  // *first* compute the new positions
-  // using the connectity of the original (coarse) mesh; navigating this mesh
-  // will be much easier than navigating
-  // the new subdivided (fine) mesh, which has more elements to traverse.  We
-  // will then assign vertex positions in
-  // the new mesh based on the values we computed for the original mesh.
+    // Each vertex and edge of the original surface can be associated with a
+    // vertex in the new (subdivided) surface.
+    // Therefore, our strategy for computing the subdivided vertex locations is to
+    // *first* compute the new positions
+    // using the connectivity of the original (coarse) mesh; navigating this mesh
+    // will be much easier than navigating
+    // the new subdivided (fine) mesh, which has more elements to traverse.  We
+    // will then assign vertex positions in
+    // the new mesh based on the values we computed for the original mesh.
 
-  // Compute updated positions for all the vertices in the original mesh, using
-  // the Loop subdivision rule.
+    // Compute updated positions for all the vertices in the original mesh, using
+    // the Loop subdivision rule.
+    for (auto v = mesh.verticesBegin(); v != mesh.verticesEnd(); v++) {
+        v->isNew = false;
+        int n = v->degree() + int(v->isBoundary());
+        double u = n == 3 ? 3. / 16. : 3. / (8. * n);
+        Vector3D pos = (1 - n * u) * v->position;
+        HalfedgeIter h = v->halfedge();
+        do {
+            h = h->twin();
+            pos += u * h->vertex()->position;
+            h = h->next();
+        } while (h != v->halfedge());
+        v->newPosition = pos;
+    }
 
-  // Next, compute the updated vertex positions associated with edges.
+    // Next, compute the updated vertex positions associated with edges.
+    for (auto e = mesh.edgesBegin(); e != mesh.edgesEnd(); e++) {
+        e->isNew = false;
+        double a = 3. / 8., b = 1. / 8.;
+        HalfedgeIter h0 = e->halfedge();
+        HalfedgeIter h1 = h0->twin();
+        Vector3D pos = a * (h0->vertex()->position + h1->vertex()->position);
+        if (!e->isBoundary()) {
+            h0 = h0->next()->next();
+            h1 = h1->next()->next();
+            pos += b * (h0->vertex()->position + h1->vertex()->position);
+        } else if (h0->isBoundary()) {
+            h1 = h1->next()->next();
+            pos += b * (h1->vertex()->position + h1->vertex()->position);
+        } else {
+            h0 = h0->next()->next();
+            pos += b * (h0->vertex()->position + h0->vertex()->position);
+        }
+        e->newPosition = pos;
+    }
 
-  // Next, we're going to split every edge in the mesh, in any order.  For
-  // future
-  // reference, we're also going to store some information about which
-  // subdivided
-  // edges come from splitting an edge in the original mesh, and which edges are
-  // new.
-  // In this loop, we only want to iterate over edges of the original
-  // mesh---otherwise,
-  // we'll end up splitting edges that we just split (and the loop will never
-  // end!)
+    // Next, we're going to split every edge in the mesh, in any order.  For
+    // future
+    // reference, we're also going to store some information about which
+    // subdivided
+    // edges come from splitting an edge in the original mesh, and which edges are
+    // new.
+    // In this loop, we only want to iterate over edges of the original
+    // mesh---otherwise,
+    // we'll end up splitting edges that we just split (and the loop will never
+    // end!)
+    int n = mesh.nEdges();
+    auto e = mesh.edgesBegin();
+    for (int i = 0; i < n; i++, e++) {
+        auto v0 = e->halfedge()->vertex();
+        auto v1 = e->halfedge()->twin()->vertex();
+        auto nv = mesh.splitEdge(e);
+        nv->isNew = true;
+        nv->newPosition = e->newPosition;
+        HalfedgeIter h = nv->halfedge();
+        do {
+            h = h->twin();
+            if (h->vertex() != v0 && h->vertex() != v1)
+                h->edge()->isNew = true;
+            h = h->next();
+        } while (h != nv->halfedge());
+    }
 
-  // Finally, flip any new edge that connects an old and new vertex.
+    // Finally, flip any new edge that connects an old and new vertex.
+    for (; e != mesh.edgesEnd(); e++) if (e->isNew) {
+        auto v0 = e->halfedge()->vertex();
+        auto v1 = e->halfedge()->twin()->vertex();
+        if (v0->isNew != v1->isNew) mesh.flipEdge(e);
+    }
 
-  // Copy the updated vertex positions to the subdivided mesh.
-  showError("upsample() not implemented.");
+    // Copy the updated vertex positions to the subdivided mesh.
+    for (auto v = mesh.verticesBegin(); v != mesh.verticesEnd(); v++) {
+        v->position = v->newPosition;
+    }
+
+    // showError("upsample() not implemented.");
 }
 
 void MeshResampler::downsample(HalfedgeMesh& mesh) {
