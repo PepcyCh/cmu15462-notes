@@ -1,5 +1,6 @@
 #include <float.h>
 #include <assert.h>
+#include <cstdlib>
 #include "meshEdit.h"
 #include "mutablePriorityQueue.h"
 #include "error_dialog.h"
@@ -1222,14 +1223,46 @@ void HalfedgeMesh::splitPolygon(FaceIter f) {
 }
 
 EdgeRecord::EdgeRecord(EdgeIter& _edge) : edge(_edge) {
-  // TODO: (meshEdit)
-  // Compute the combined quadric from the edge endpoints.
-  // -> Build the 3x3 linear system whose solution minimizes the quadric error
-  //    associated with these two endpoints.
-  // -> Use this system to solve for the optimal position, and store it in
-  //    EdgeRecord::optimalPoint.
-  // -> Also store the cost associated with collapsing this edg in
-  //    EdgeRecord::Cost.
+    // Compute the combined quadric from the edge endpoints.
+    // -> Build the 3x3 linear system whose solution minimizes the quadric error
+    //    associated with these two endpoints.
+    // -> Use this system to solve for the optimal position, and store it in
+    //    EdgeRecord::optimalPoint.
+    // -> Also store the cost associated with collapsing this edg in
+    //    EdgeRecord::Cost.
+
+    Matrix4x4 K = _edge->halfedge()->vertex()->quadric + _edge->halfedge()->twin()->vertex()->quadric;
+    Matrix3x3 A;
+    Vector3D B(0);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            A[i][j] = K[i][j];
+        }
+        B[i] = -K[i][3];
+    }
+
+    double det = A.det();
+    static const double eps = 1e-9;
+    if (std::abs(det) < eps) {
+        Vector3D p0 = _edge->halfedge()->vertex()->position;
+        Vector4D ph0(p0, 1);
+        Vector3D p1 = _edge->halfedge()->twin()->vertex()->position;
+        Vector4D ph1(p1, 1);
+        double c0 = dot(ph0, K * ph0);
+        double c1 = dot(ph1, K * ph1);
+        if (c0 < c1) {
+            optimalPoint = p0;
+            score = c0;
+        } else {
+            optimalPoint = p1;
+            score = c1;
+        }
+    } else {
+        Vector3D x = A.inv() * B;
+        optimalPoint = x;
+        Vector4D xh(x, 1);
+        score = dot(xh, K * xh);
+    }
 }
 
 void MeshResampler::upsample(HalfedgeMesh& mesh)
@@ -1342,36 +1375,212 @@ void MeshResampler::upsample(HalfedgeMesh& mesh)
 }
 
 void MeshResampler::downsample(HalfedgeMesh& mesh) {
-  // TODO: (meshEdit)
-  // Compute initial quadrics for each face by simply writing the plane equation
-  // for the face in homogeneous coordinates. These quadrics should be stored
-  // in Face::quadric
-  // -> Compute an initial quadric for each vertex as the sum of the quadrics
-  //    associated with the incident faces, storing it in Vertex::quadric
-  // -> Build a priority queue of edges according to their quadric error cost,
-  //    i.e., by building an EdgeRecord for each edge and sticking it in the
-  //    queue.
-  // -> Until we reach the target edge budget, collapse the best edge. Remember
-  //    to remove from the queue any edge that touches the collapsing edge
-  //    BEFORE it gets collapsed, and add back into the queue any edge touching
-  //    the collapsed vertex AFTER it's been collapsed. Also remember to assign
-  //    a quadric to the collapsed vertex, and to pop the collapsed edge off the
-  //    top of the queue.
-  showError("downsample() not implemented.");
+    // Compute initial quadrics for each face by simply writing the plane equation
+    // for the face in homogeneous coordinates. These quadrics should be stored
+    // in Face::quadric
+    // -> Compute an initial quadric for each vertex as the sum of the quadrics
+    //    associated with the incident faces, storing it in Vertex::quadric
+    // -> Build a priority queue of edges according to their quadric error cost,
+    //    i.e., by building an EdgeRecord for each edge and sticking it in the
+    //    queue.
+    // -> Until we reach the target edge budget, collapse the best edge. Remember
+    //    to remove from the queue any edge that touches the collapsing edge
+    //    BEFORE it gets collapsed, and add back into the queue any edge touching
+    //    the collapsed vertex AFTER it's been collapsed. Also remember to assign
+    //    a quadric to the collapsed vertex, and to pop the collapsed edge off the
+    //    top of the queue.
+
+    bool isTriangle = true;
+    for (auto f = mesh.facesBegin(); f != mesh.facesEnd(); f++) {
+        if (f->degree() != 3) {
+            isTriangle = false;
+            break;
+        }
+    }
+    if (!isTriangle) {
+        showError("Downsample on non-triangle mesh");
+        return;
+    }
+
+    for (auto f = mesh.facesBegin(); f != mesh.facesEnd(); f++) {
+        Vector3D P = f->halfedge()->vertex()->position;
+        Vector3D N = f->normal();
+        double d = dot(P, N);
+        Vector4D v(N, -d);
+        f->quadric = outer(v, v);
+    }
+
+    for (auto v = mesh.verticesBegin(); v != mesh.verticesEnd(); v++) {
+        Matrix4x4 quad;
+        quad.zero();
+        HalfedgeIter h = v->halfedge();
+        do {
+            quad += h->face()->quadric;
+            h = h->twin()->next();
+        } while (h != v->halfedge());
+        v->quadric = quad;
+    }
+
+    MutablePriorityQueue<EdgeRecord> q;
+    for (auto e = mesh.edgesBegin(); e != mesh.edgesEnd(); e++) {
+        q.insert(e->record = EdgeRecord(e));
+    }
+
+    int need = max<int>(mesh.nEdges() * 0.25, 6);
+    while (mesh.nEdges() > need) {
+        auto e = q.top();
+        q.pop();
+
+        VertexIter v0 = e.edge->halfedge()->vertex();
+        HalfedgeIter h0 = v0->halfedge();
+        do {
+            if (h0->edge() != e.edge) {
+                q.remove(h0->edge()->record);
+            }
+            h0 = h0->twin()->next();
+        } while (h0 != v0->halfedge());
+        VertexIter v1 = e.edge->halfedge()->twin()->vertex();
+        HalfedgeIter h1 = v1->halfedge();
+        do {
+            if (h1->edge() != e.edge) {
+                q.remove(h1->edge()->record);
+            }
+            h1 = h1->twin()->next();
+        } while (h1 != v1->halfedge());
+
+        auto nv = mesh.collapseEdge(e.edge);
+        nv->position = e.optimalPoint;
+
+        HalfedgeIter h = nv->halfedge();
+        Matrix4x4 quad;
+        quad.zero();
+        Vector3D P = nv->position;
+        do {
+            FaceIter f = h->face();
+            Vector3D N = f->normal();
+            double d = dot(P, N);
+            Vector4D v(N, -d);
+            f->quadric = outer(v, v);
+            quad += f->quadric;
+            h = h->twin()->next();
+        } while (h != nv->halfedge());
+
+        nv->quadric = quad;
+        h = nv->halfedge();
+        do {
+            q.insert(h->edge()->record = EdgeRecord(h->edge()));
+            h = h->twin()->next();
+        } while (h != nv->halfedge());
+    }
+
+    // showError("downsample() not implemented.");
 }
 
 void MeshResampler::resample(HalfedgeMesh& mesh) {
-  // TODO: (meshEdit)
-  // Compute the mean edge length.
-  // Repeat the four main steps for 5 or 6 iterations
-  // -> Split edges much longer than the target length (being careful about
-  //    how the loop is written!)
-  // -> Collapse edges much shorter than the target length.  Here we need to
-  //    be EXTRA careful about advancing the loop, because many edges may have
-  //    been destroyed by a collapse (which ones?)
-  // -> Now flip each edge if it improves vertex degree
-  // -> Finally, apply some tangential smoothing to the vertex positions
-  showError("resample() not implemented.");
+    // Compute the mean edge length.
+    // Repeat the four main steps for 5 or 6 iterations
+    // -> Split edges much longer than the target length (being careful about
+    //    how the loop is written!)
+    // -> Collapse edges much shorter than the target length.  Here we need to
+    //    be EXTRA careful about advancing the loop, because many edges may have
+    //    been destroyed by a collapse (which ones?)
+    // -> Now flip each edge if it improves vertex degree
+    // -> Finally, apply some tangential smoothing to the vertex positions
+
+    bool isTriangle = true;
+    for (auto f = mesh.facesBegin(); f != mesh.facesEnd(); f++) {
+        if (f->degree() != 3) {
+            isTriangle = false;
+            break;
+        }
+    }
+    if (!isTriangle) {
+        showError("Resample on non-triangle mesh");
+        return;
+    }
+
+    static const int TIM = 5;
+    for (int tim = 0; tim < TIM; tim++) {
+        double means = 0;
+        for (auto e = mesh.edgesBegin(); e != mesh.edgesEnd(); e++) {
+            means += e->length();
+        }
+        means /= mesh.nEdges();
+
+        { // split long edge
+            static const double RATE = 4. / 3.;
+
+            int N = mesh.nEdges();
+            auto e = mesh.edgesBegin();
+            for (int i = 0; i < N; i++, e++) {
+                if (e->length() > RATE * means) {
+                    mesh.splitEdge(e);
+                }
+            }
+        }
+        { // collapse short edge
+            static const double RATE = 4. / 5.;
+
+            vector<EdgeIter> shorts;
+            for (auto e = mesh.edgesBegin(); e != mesh.edgesEnd(); e++) {
+                if (e->length() < RATE * means) {
+                    shorts.push_back(e);
+                }
+            }
+
+            while (!shorts.empty()) {
+                auto e = shorts.front();
+                VertexIter v0 = e->halfedge()->vertex();
+                HalfedgeIter h0 = v0->halfedge();
+                do {
+                    if (h0->edge() != e) {
+                        auto it = find(shorts.begin(), shorts.end(), h0->edge());
+                        if (it != shorts.end()) shorts.erase(it);
+                    }
+                    h0 = h0->twin()->next();
+                } while (h0 != v0->halfedge());
+                VertexIter v1 = e->halfedge()->twin()->vertex();
+                HalfedgeIter h1 = v1->halfedge();
+                do {
+                    if (h1->edge() != e) {
+                        auto it = find(shorts.begin(), shorts.end(), h1->edge());
+                        if (it != shorts.end()) shorts.erase(it);
+                    }
+                    h1 = h1->twin()->next();
+                } while (h1 != v1->halfedge());
+                shorts.erase(shorts.begin());
+                mesh.collapseEdge(e);
+            }
+        }
+        // flip edges
+        for (auto e = mesh.edgesBegin(); e != mesh.edgesEnd(); e++) {
+            VertexIter v0 = e->halfedge()->vertex();
+            VertexIter v1 = e->halfedge()->twin()->vertex();
+            VertexIter v2 = e->halfedge()->next()->next()->vertex();
+            VertexIter v3 = e->halfedge()->twin()->next()->next()->vertex();
+            int err0 = abs(int(v0->degree()) - 6) + abs(int(v1->degree()) - 6)
+                     + abs(int(v2->degree()) - 6) + abs(int(v3->degree()) - 6);
+
+            auto e0 = mesh.flipEdge(e);
+            int err1 = abs(int(v0->degree()) - 6) + abs(int(v1->degree()) - 6)
+                     + abs(int(v2->degree()) - 6) + abs(int(v3->degree()) - 6);
+
+            if (err0 <= err1) mesh.flipEdge(e0);
+        }
+        // compute new position
+        for (auto v = mesh.verticesBegin(); v != mesh.verticesEnd(); v++) {
+            Vector3D dir = v->position - v->neighborhoodCentroid();
+            Vector3D N = v->normal();
+            dir -= dot(N, dir) * N;
+            v->newPosition = v->position + 0.2 * dir;
+        }
+        // move to new position
+        for (auto v = mesh.verticesBegin(); v != mesh.verticesEnd(); v++) {
+            v->position = v->newPosition;
+        }
+    }
+
+    // showError("resample() not implemented.");
 }
 
 }  // namespace CMU462

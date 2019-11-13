@@ -42,7 +42,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
   * [x] 7 Anti-Aliasing Image Elements Using Trilinear Filtering
   * [x] 8 Alpha Compositing
   * [x] 9 Draw Something!!!
-* [ ] 2.0 MeshEdit
+* [x] 2.0 MeshEdit (But lots of bugs remain unfixed)
   * [x] Local Operations
     * [x] `VertexBevel`
     * [x] `EdgeBevel`
@@ -53,12 +53,12 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
     * [x] `FaceCollapse`
     * [x] `EdgeFlip`
     * [x] `EdgeSplit`
-  * [ ] Global Operations
+  * [x] Global Operations
     * [x] `Triangulation`
     * [x] `LinearSubdivision`
     * [x] `CatmullClarkSubdivision`
     * [x] `LoopSubdivision` - depends on `EdgeSplit` and `EdgeFlip`
-    * [ ] `IsotropicRemeshing` - depends on `EdgeSplit`, `EdgeFlip`, and `EdgeCollapse`
-    * [ ] `Simplification` - depends on `EdgeCollapse`
+    * [x] `IsotropicRemeshing` - depends on `EdgeSplit`, `EdgeFlip`, and `EdgeCollapse`
+    * [x] `Simplification` - depends on `EdgeCollapse`
 * [ ] 3.0 PathTracer
 * [ ] 4.0 Animation
