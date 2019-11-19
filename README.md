@@ -18,7 +18,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [x] 10 Meshes and Manifolds
 * [x] 11 Digital Geometry Processing
 * [x] 12 Geometric Queries
-* [ ] 13 Spatial Data Structures
+* [x] 13 Spatial Data Structures
 * [ ] 14 Color
 * [ ] 15 Radiometry
 * [ ] 16 The Rendering Equation
@@ -61,4 +61,11 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
     * [x] `IsotropicRemeshing` - depends on `EdgeSplit`, `EdgeFlip`, and `EdgeCollapse`
     * [x] `Simplification` - depends on `EdgeCollapse`
 * [ ] 3.0 PathTracer
+  * [ ] 1 - Generating Camera Rays
+  * [ ] 2 - Intersecting Triangles and Spheres
+  * [ ] 3 - Implementing a Bounding Volume Hierarchy (BVH)
+  * [ ] 4 - Implementing Shadow Rays
+  * [ ] 5 - Adding Path Tracing
+  * [ ] 6 - Adding New Materials
+  * [ ] 7 - Infinite Environment Lighting
 * [ ] 4.0 Animation

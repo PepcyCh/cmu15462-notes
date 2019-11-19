@@ -919,3 +919,138 @@ What if triangle is moving?
 * Consider it as a prism in time
 * Turn to 4-D intertsection problem
 
+## Lect 13 Spatial Data Structures
+
+> site: [Spatial Data Structures](http://15462.courses.cs.cmu.edu/fall2018/lecture/spatialdatastructures)
+
+### Ray-Mesh Intersection
+
+#### Triangle
+
+Triangle can be represented by $\mathbf{p_0} + u(\mathbf{p_1} - \mathbf{p_0}) + v(\mathbf{p_2} - \mathbf{p_0})$ .
+$$
+\mathbf{p_0} + u(\mathbf{p_1} - \mathbf{p_0}) + v(\mathbf{p_2} - \mathbf{p_0}) = \mathbf{o} + t\mathbf{d} \\
+\begin{bmatrix}
+\mathbf{p_1} - \mathbf{p_0} & \mathbf{p_2} - \mathbf{p_0} & -\mathbf{d}
+\end{bmatrix}
+\begin{bmatrix}
+u \\
+v \\
+t
+\end{bmatrix} = \mathbf{o} - \mathbf{p_0}
+$$
+
+#### Axis-aligned box
+
+Calculate $t_{\text{min}}$ and $t_{\text{max}}$ for each direction, then $[\max(t_{\text{min}}), \min(t_{\text{max}})]$ is the intersection interval.
+
+Can also work if ray misses the box, $\max(t_{\text{min}})$ will be greater than $\min(t_{\text{max}})$.
+
+#### Scene
+
+Check each primitive takes $O(n)$ time.
+
+Can be done faster?
+
+Check ray-bounding-box intersection first. But still need to check all the primitives if ray hits the bounding box.
+
+Apply this strategy hierarchically.
+
+### Bounding Volume Hierarchy (BVH)
+
+BVH partitions each node's primitives into disjoisnt sets. But these sets may overlap in space.
+
+"front-to-back" traversal: only traverse the farther child if the calculated $t$ in the nearer child is greater than that calculated with bounding box of the farther child.
+
+#### Build a high-quality BVH
+
+want small bounding boxes (minimize overlap between children, avoid empty space)
+
+for a leaf node: $C = \sum_{i = 1}^{N} C_{\text{isect}(i)} = NC_{\text{isect}}$ ($C_{\text{isect}}(i)$ is  the cost of ray-primitive intersection for primitive $i$)
+
+for an interior node: $C = C_{\text{trav}} + p_AC_A + p_BC_B$  ($p_A$ is the probablity a ray intersects with the bbox of child A)
+
+Tp get hitting probablity: for convex object A inside convex object B, we have:
+$$
+P(\text{hit A} \mid \text{hit B}) = \frac{S_A}{S_B}
+$$
+, where $S_A$ is the surface areas of A. Therefore, (surface area heuristic - SAH)
+$$
+C = C_{\text{trav}} + \frac{S_A}{S_N}N_AC_{\text{isect}} + \frac{S_B}{S_N}N_BC_{\text{isect}}
+$$
+
+#### Implenting Partitions
+
+Basic ideas:
+
+- Choose an axis, choose a split plane on that axis
+- Partition primitives by the side of splitting plane their centroid lies
+- SAH changes only when split plane moves past triangle boundary
+- Have to consider rather large number of possible split planes...
+
+A more efficent way: split spatial extent of primitives into $B$ buckets by the position of their centroids ($B$ is typically small: $B < 32$).
+
+need to consider only $3(B - 1)$ possible partitioning.
+
+#### Troublesome cases
+
+* All primitives with the same centroid
+* All primitives with the same bbox
+
+### Space-partitioning structures
+
+#### Primitive-partitioning accelertion structures vs. Space-partitioning structures
+
+* Primitive partitioning (bounding volume hierarchy) partitions node's primitives into disjoint sets (but sets may overlap in space)
+* Space-partitioning (grid, K-D tree) partitions space into disjoint regions (primitives may be contained in multiple regions of space)
+
+#### K-D Tree
+
+Recursively partition space via axis-aligned partitioning planes
+- Interior nodes correspond to spatial splits
+- Node traversal can proceed in front-to-back order
+- Unlike BVH, can terminate search after first hit is found
+
+If a primitive overlaps multiple nodes, early break may leads to incorrect result.
+
+Solution: require primitive intersection point to be within current leaf.
+
+#### Unifrom grid
+
+* Partition space into equal sized volumes (volume-elements or "voxels")
+* Each grid cell contains primitives that overlap voxel.
+* Walk ray through volume in order
+  * Very efficient implementation possible (just like 3D line rasterization)
+  * Only consider intersection with primitives in voxels the ray intersects
+
+Grid resolution: Choose number of voxels ~ total number of primitives (constant prims per voxel if uniform distribution of primitives holds)
+
+Time complexity: $O(\sqrt[3]{N})$ on average.
+
+Uniform grid cannot adapt to non-uniform distribution of geometry in scene. ("teapot in a stadium")
+
+#### Quad-tree / Octree
+
+Easy to build and has greater ability to adapt to location of scene geometry than uniform grid.
+
+But lower intersection performance than K-D tree.
+
+### Basic Rasterization vs. Ray Casting
+
+* **Rasterization**
+  * Proceeds in triangle order
+  * Store depth buffer (random access to regular structure of fixed size)
+  * Don't have to store entire scene in memory, naturally supports unbounded size scenes
+* **Ray casting**
+  * Proceeds in screen sample order
+    * Don't have to store closest depth so far for the entire screen (just current ray)
+    * Natural order for rendering transparent surfaces (process surfaces in the order the are encountered along the ray: front-to-back or back-to-front)
+  * Must store entire scene
+  * Performance more strongly depends on distribution of primitives in scene
+* **Modern high-performance implementations of rasterization and ray-casting embody very similar techniques**
+  * Hierarchies of rays/samples
+  * Hierarchies of geometry
+  * Deferred shading
+
+
+
