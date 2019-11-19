@@ -851,3 +851,71 @@ Repeat four steps:
 - Flip edges to improve vertex degree
 - Centervertices tangentially
 
+## Lect 12 Geometric Queries
+
+> site: [Geometric Queries](http://15462.courses.cs.cmu.edu/fall2018/lecture/geometricqueries)
+
+### Closest point
+
+#### To a point
+
+#### To a line
+
+$$
+\text{line: } \mathbf{N}^T\mathbf{x} = c \\
+\mathbf{N}^T(\mathbf{p} + t\mathbf{N}) = c \\
+t = c - \mathbf{N}^T \mathbf{p}
+$$
+
+#### To a segment
+
+#### To a triangle
+
+#### To a plane
+
+the same to "to a line"
+
+#### To a mesh
+
+### Ray-Mesh Intersection
+
+$$
+\mathbf{r}(t) = \mathbf{o} + t \mathbf{d}
+$$
+
+#### Implicit Surface
+
+$f(\mathbf{r}(t)) = 0$
+
+#### Plane
+
+$$
+\mathbf{N}^T(\mathbf{o} + t \mathbf{d}) = c \\
+t = \frac{c - \mathbf{N}^T \mathbf{o}}{\mathbf{N}^T \mathbf{d}}
+$$
+
+#### Triangle
+
+Just calculate the intersection of ray-plane and check if the point is inside the triangle by barycentric coordinate.
+
+Faster algorithm exists.
+
+### Mesh-Mesh Intersection
+
+#### Point-point intersection
+
+#### Point-line intersection
+
+#### Line-line intersection
+
+What if lines are almost parallel?
+
+#### Triangle-triangle intersection
+
+Reduce to edge-triangle intersection.
+
+What if triangle is moving?
+
+* Consider it as a prism in time
+* Turn to 4-D intertsection problem
+
