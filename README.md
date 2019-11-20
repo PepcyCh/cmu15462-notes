@@ -19,7 +19,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [x] 11 Digital Geometry Processing
 * [x] 12 Geometric Queries
 * [x] 13 Spatial Data Structures
-* [ ] 14 Color
+* [x] 14 Color
 * [ ] 15 Radiometry
 * [ ] 16 The Rendering Equation
 * [ ] 17 Numerical Integration

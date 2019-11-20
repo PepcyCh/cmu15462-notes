@@ -1052,5 +1052,115 @@ But lower intersection performance than K-D tree.
   * Hierarchies of geometry
   * Deferred shading
 
+## Lect 14 Color
 
+> site: [Color](http://15462.courses.cs.cmu.edu/fall2018/lecture/color)
+
+Light is EM Radiation. Color is Frequency.
+
+### Additive vs. Subtractive Models of Lights
+
+emission spectrum & absorb spectrum
+
+#### Emission Spectrum
+
+Describes light intensity as a function of frequency.
+
+#### Absorbed Spectrum
+
+Fraction absorbed as function of frequency.
+
+### Interaction of Emission and Reflection
+
+Light source emission spectrum: $f(\nu)$
+
+Surface reflection spectrum: $g(\nu)$
+
+Result: $f(\nu) g(\nu)$
+
+### EM Radiance to Color
+
+#### Photosensor
+
+EM power distribution over wavelength: $\Phi(\lambda)$
+
+Sensity of sensor: $f(\lambda)$
+
+Responce: $R = \int_{\lambda} f(\lambda) \Phi(\lambda) \mathrm{d}\lambda$
+
+#### Human
+
+Rods and cones.
+
+Three types of cones: S, M, L
+$$
+S = \int_{\lambda} \Phi(\lambda) S(\lambda) \text{d} \lambda \\
+M = \int_{\lambda} \Phi(\lambda) M(\lambda) \text{d} \lambda \\
+L = \int_{\lambda} \Phi(\lambda) L(\lambda) \text{d} \lambda \\
+$$
+
+#### Metamers
+
+(metamer: 条件等色体) Two different spectra that integral to the same $(S, M, L)$ response.
+
+We don't have to reproduce the exact same spectrum that was present in a real world scene in order to reproduce the perceived color on a monitor (or piece of paper, or paint on a wall).
+
+A usage: counterfeit detection, yeilds different appearence under UV light.
+
+### Color Spaces and Color Models
+
+#### Additive vs. Subtractive Color Models
+
+Additive:
+
+* use for combining colored lights
+* RGB
+
+subtractive (multiplicative)
+
+* use for combining paint color
+* CMYK
+
+#### Other color spaces
+
+HSV (Hue, Saturation, Value)
+
+* more intuitive than RGB/CMYK
+
+SML
+
+* physiological model
+* not practical for most color work
+
+XYZ
+
+* preceptually-driven model
+* related to but different from SML
+
+Lab
+
+YCbCr
+
+### CIE Color Space
+
+Standard reference color space.
+
+#### Chromaticity Diagram
+
+#### sRGB
+
+#### Color Acuity (MacAdam Ellipse)
+
+Each ellipse corresponds to a region of "just noticeable differences" of color (chromaticity).
+
+Try to avoid overlapping ellipses.
+
+### Gamma Correction
+
+Non-linear correction for old CRT display.
+
+Doesn't apply to modern LCD displays, whose luminance output is linearly proportional to
+input.
+
+DOES still apply to other devices, like sensors, etc.
 
