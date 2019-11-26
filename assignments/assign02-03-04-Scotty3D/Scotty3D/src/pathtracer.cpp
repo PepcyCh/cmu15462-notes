@@ -24,7 +24,7 @@ using std::max;
 
 namespace CMU462 {
 
-// #define ENABLE_RAY_LOGGING 1
+#define ENABLE_RAY_LOGGING 1
 
 PathTracer::PathTracer(size_t ns_aa, size_t max_ray_depth, size_t ns_area_light,
                        size_t ns_diff, size_t ns_glsy, size_t ns_refr,
@@ -47,7 +47,13 @@ PathTracer::PathTracer(size_t ns_aa, size_t max_ray_depth, size_t ns_area_light,
   scene = NULL;
   camera = NULL;
 
-  gridSampler = new UniformGridSampler2D();
+  // gridSampler = new UniformGridSampler2D();
+  // gridSampler = new JitteredSampler(ns_aa);
+  // gridSampler = new MultiJitteredSampler(ns_aa);
+  // gridSampler = new NRooksSampler(ns_aa);
+  gridSampler = new SobolSampler(ns_aa);
+  // gridSampler = new HaltonSampler(ns_aa);
+  // gridSampler = new HammersleySampler(ns_aa);
   hemisphereSampler = new UniformHemisphereSampler3D();
 
   show_rays = true;
@@ -497,14 +503,20 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
 }
 
 Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
-  // TODO (PathTracer):
   // Sample the pixel with coordinate (x,y) and return the result spectrum.
   // The sample rate is given by the number of camera rays per pixel.
 
-  int num_samples = ns_aa;
+  Spectrum res(0, 0, 0);
+  for (int i = 0; i < ns_aa; i++) {
+    Vector2D sp = gridSampler->get_sample();
+    double ux = (x + sp.x) / frameBuffer.w;
+    double uy = (y + sp.y) / frameBuffer.h;
+    Spectrum col = trace_ray(camera->generate_ray(ux, uy));
+    res += col;
+  }
+  res *= 1. / ns_aa;
 
-  Vector2D p = Vector2D(0.5, 0.5);
-  return trace_ray(camera->generate_ray(p.x, p.y));
+  return res;
 }
 
 void PathTracer::raytrace_tile(int tile_x, int tile_y, int tile_w, int tile_h) {

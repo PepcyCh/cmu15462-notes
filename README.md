@@ -61,7 +61,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
     * [x] `IsotropicRemeshing` - depends on `EdgeSplit`, `EdgeFlip`, and `EdgeCollapse`
     * [x] `Simplification` - depends on `EdgeCollapse`
 * [ ] 3.0 PathTracer
-  * [ ] 1 - Generating Camera Rays
+  * [x] 1 - Generating Camera Rays
   * [ ] 2 - Intersecting Triangles and Spheres
   * [ ] 3 - Implementing a Bounding Volume Hierarchy (BVH)
   * [ ] 4 - Implementing Shadow Rays

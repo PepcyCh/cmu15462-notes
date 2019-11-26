@@ -75,6 +75,56 @@ class CosineWeightedHemisphereSampler3D : public Sampler3D {
  * TODO (extra credit) :
  * Jittered sampler implementations
  */
+class MultiSampler2D : public Sampler2D {
+ public:
+  MultiSampler2D(size_t ns_aa) : ns_aa(ns_aa) {}
+  virtual Vector2D get_sample() const = 0;
+
+ protected:
+  size_t ns_aa;
+};
+
+class JitteredSampler : public MultiSampler2D {
+ public:
+  JitteredSampler(size_t ns_aa) : MultiSampler2D(ns_aa) {
+      int w = std::sqrt(ns_aa);
+      ns_aa = w * w;
+  }
+  Vector2D get_sample() const;
+};
+
+class MultiJitteredSampler : public MultiSampler2D {
+ public:
+  MultiJitteredSampler(size_t ns_aa) : MultiSampler2D(ns_aa) {
+      int w = std::sqrt(ns_aa);
+      ns_aa = w * w;
+  }
+  Vector2D get_sample() const;
+};
+
+class NRooksSampler : public MultiSampler2D {
+ public:
+  NRooksSampler(size_t ns_aa) : MultiSampler2D(ns_aa) {}
+  Vector2D get_sample() const;
+};
+
+class SobolSampler : public MultiSampler2D {
+ public:
+  SobolSampler(size_t ns_aa) : MultiSampler2D(ns_aa) {}
+  Vector2D get_sample() const;
+};
+
+class HaltonSampler : public MultiSampler2D {
+ public:
+  HaltonSampler(size_t ns_aa) : MultiSampler2D(ns_aa) {}
+  Vector2D get_sample() const;
+};
+
+class HammersleySampler : public MultiSampler2D {
+public:
+  HammersleySampler(size_t ns_aa) : MultiSampler2D(ns_aa) {}
+  Vector2D get_sample() const;
+};
 
 }  // namespace CMU462
 
