@@ -62,7 +62,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
     * [x] `Simplification` - depends on `EdgeCollapse`
 * [ ] 3.0 PathTracer
   * [x] 1 - Generating Camera Rays
-  * [ ] 2 - Intersecting Triangles and Spheres
+  * [x] 2 - Intersecting Triangles and Spheres
   * [ ] 3 - Implementing a Bounding Volume Hierarchy (BVH)
   * [ ] 4 - Implementing Shadow Rays
   * [ ] 5 - Adding Path Tracing
