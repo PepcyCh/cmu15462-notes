@@ -1164,3 +1164,135 @@ input.
 
 DOES still apply to other devices, like sensors, etc.
 
+## Lect 15 Radiometry
+
+> site: [Radiometry](http://15462.courses.cs.cmu.edu/fall2018/lecture/radiometry)
+
+* System of units and measures for measuring EM radiation (light)
+* Geometric optics model of light
+  * Photons travel in straight lines
+  * Represented by rays
+  * Wavelength << size of objects
+  * No diffraction, interference, …
+
+### Concepts
+
+Names don’t constitute knowledge!
+
+Energy of photons hitting an object ~ “brightness
+
+#### Radiant energy
+
+total of hits
+
+#### Radiant flux
+
+hits per second
+
+#### Irradiance
+
+hits per second, per unit area
+
+Image generation as irradiance estimation.
+
+#### Color
+
+irradiance per unit wavelength
+
+### Measuring illumination
+
+#### Radiant energy
+
+$$
+Q = h \nu = \frac{hc}{\lambda}
+$$
+
+#### Radiant flux
+
+$$
+\Phi = \frac{\mathrm{d}Q}{\mathrm{d}t}
+$$
+
+#### Irradiance
+
+$$
+E(p) = \frac{\mathrm{d}\Phi(p)}{\mathrm{d}A}
+$$
+
+#### Lambert's law
+
+$$
+E = \frac{\Phi}{A'} = \frac{\Phi \cos \theta}{A}
+$$
+
+**"N-dot-L" lighting**
+
+#### Isotropic point source
+
+$$
+I = \frac{\Phi}{4\pi}
+$$
+
+##### Irradiance falloff with distance
+
+$\Phi$ keeps unchanged.
+$$
+E_1 = \frac{\Phi}{4 \pi r_1^2}, \Phi = 4 \pi r_1^2 E_1 \\
+E_2 = \frac{\Phi}{4 \pi r_2^2}, \Phi = 4 \pi r_2^2 E_2 \\
+\frac{E_1}{E_2} = \left( \frac{r_2}{r_1} \right)^2
+$$
+
+#### Solid Angle
+
+$$
+\Omega = \frac{A}{r^2} \\
+\mathrm{d} \omega = \frac{\mathrm{d}A}{r^2} = \sin \theta \mathrm{d} \theta \mathrm{d} \phi
+$$
+
+#### Radiance
+
+Solid angle density of irradiance.
+$$
+L(p, \omega) = \frac{\mathrm{d}E_{\omega}(p)}{\mathrm{d}\omega} = \frac{\mathrm{d} E(p)}{\cos \theta \mathrm{d} \omega} = \frac{\mathrm{d}^2\Phi(p)}{\mathrm{d}A \mathrm{d}\omega \cos \theta}
+$$
+radiance is constant along rays.
+
+#### Spectral radiance
+
+In general, $L_i(\mathbf{p_i}, \omega) \neq L_o(\mathbf{p_o}, \omega)$.
+
+### Properties of radiance
+
+* Radiance is a fundamental field quantity that characterizes the distribution of light in an environment
+  * Radiance is the quantity associated with a ray
+  * Rendering is all about computing radiance
+* Radiance is constant along a ray (in a vacuum)
+* A pinhole camera measures radiance
+
+### Ambient occlusion
+
+### Irradiance calculation
+
+#### Irradiance from the enviroment
+
+$$
+E(p) = \int_{H^2} L_i(p_i, \omega) \cos \theta \mathrm{d} \omega
+$$
+
+If $L$ is constant:
+$$
+E(p) = \int_{H^2} L \cos \theta \mathrm{d}\omega = L \int_{0}^{2 \pi} \int_{0}^{\pi / 2}\cos \theta \sin \theta \mathrm{d} \theta \mathrm{d} \phi = L \pi
+$$
+
+#### Irradiance from a uniform area source
+
+$$
+E(p) = \int_{\Omega} L \cos \theta \mathrm{d} \omega = L \Omega^{\bot}
+$$
+
+#### Uniform disk source (oriented perpendicular to plane)
+
+$$
+\Omega^{\bot} = \pi \sin^2 \alpha
+$$
+
