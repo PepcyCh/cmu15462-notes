@@ -8,12 +8,21 @@
 namespace CMU462 {
 
 bool BBox::intersect(const Ray &r, double &t0, double &t1) const {
-  // TODO (PathTracer):
   // Implement ray - bounding box intersection test
   // If the ray intersected the bounding box within the range given by
   // t0, t1, update t0 and t1 with the new intersection times.
 
-  return false;
+  t0 = r.min_t;
+  t1 = r.max_t;
+  for (int d = 0; d < 3; d++) {
+      double tt0 = std::min((min[d] - r.o[d]) * r.inv_d[d], (max[d] - r.o[d]) * r.inv_d[d]);
+      double tt1 = std::max((min[d] - r.o[d]) * r.inv_d[d], (max[d] - r.o[d]) * r.inv_d[d]);
+      t0 = std::max(t0, tt0);
+      t1 = std::min(t1, tt1);
+      if (t0 > t1) return false;
+  }
+
+  return t0 < r.max_t;
 }
 
 void BBox::draw(Color c) const {

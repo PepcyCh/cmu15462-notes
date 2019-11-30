@@ -11,10 +11,18 @@ Triangle::Triangle(const Mesh* mesh, size_t v1, size_t v2, size_t v3)
     : mesh(mesh), v1(v1), v2(v2), v3(v3) {}
 
 BBox Triangle::get_bbox() const {
-  // TODO (PathTracer):
   // compute the bounding box of the triangle
+  Vector3D p1 = mesh->positions[v1];
+  Vector3D p2 = mesh->positions[v2];
+  Vector3D p3 = mesh->positions[v3];
+  double minX = std::min({p1.x, p2.x, p3.x});
+  double maxX = std::max({p1.x, p2.x, p3.x});
+  double minY = std::min({p1.y, p2.y, p3.y});
+  double maxY = std::max({p1.y, p2.y, p3.y});
+  double minZ = std::min({p1.z, p2.z, p3.z});
+  double maxZ = std::max({p1.z, p2.z, p3.z});
 
-  return BBox();
+  return BBox(minX, minY, minZ, maxX, maxY, maxZ);
 }
 
 static bool doesRayIntersectSegment(const Ray& r, const Vector3D& v0, const Vector3D& v1, double &t) {
