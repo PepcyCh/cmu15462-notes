@@ -24,7 +24,7 @@ using std::max;
 
 namespace CMU462 {
 
-#define ENABLE_RAY_LOGGING 1
+// #define ENABLE_RAY_LOGGING 1
 
 PathTracer::PathTracer(size_t ns_aa, size_t max_ray_depth, size_t ns_area_light,
                        size_t ns_diff, size_t ns_glsy, size_t ns_refr,
@@ -425,7 +425,7 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
   // indirect lighting components calculated in the code below. The starter
   // code overwrites L_out by (.5,.5,.5) so that you can test your geometry
   // queries before you implement path tracing.
-  L_out = Spectrum(5.f, 5.f, 5.f);
+  // L_out = Spectrum(5.f, 5.f, 5.f);
 
   Vector3D hit_p = r.o + r.d * isect.t;
   Vector3D hit_n = isect.n;
@@ -440,7 +440,6 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
   // toward the camera if this is a primary ray)
   Vector3D w_out = w2o * (r.o - hit_p);
   w_out.normalize();
-
 
   if (!isect.bsdf->is_delta()) {
     Vector3D dir_to_light;
@@ -475,10 +474,12 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
         // evaluate surface bsdf
         const Spectrum& f = isect.bsdf->f(w_out, w_in);
 
-        // TODO (PathTracer):
         // (Task 4) Construct a shadow ray and compute whether the intersected surface is
         // in shadow. Only accumulate light if not in shadow.
-        L_out += (cos_theta / (num_light_samples * pr)) * f * light_L;
+        Ray shadow(hit_p + hit_n * EPS_D, dir_to_light);
+        if (!bvh->intersect(shadow)) {
+          L_out += (cos_theta / (num_light_samples * pr)) * f * light_L;
+        }
       }
     }
   }

@@ -1296,3 +1296,114 @@ $$
 \Omega^{\bot} = \pi \sin^2 \alpha
 $$
 
+## Lect 16 The Rendering Equation
+
+> site: [The Rendering Equation](http://15462.courses.cs.cmu.edu/fall2018/lecture/renderingequation)
+
+Core functionality of photorealistic renderer is to estimate radiance at a given point $p$, in a given direction $\omega_o$.
+$$
+L_o(\mathbf{p}, \omega_o) = L_e(\mathbf{p}, \omega_o) + \int_{\mathcal{H}^2}f_r(\mathbf{p}, \omega_i \to \omega_o) L_i(\mathbf{p}, \omega_i) \cos \theta \mathrm{d}\omega_i
+$$
+
+* $\mathbf{p}$: point of interest
+* $\omega_o$: direction of interest
+* $L_o$: outgoing / observed radiance
+* $L_e$: emitted radiance
+* $L_i$: incoming radiance
+* $f_r$: scattering function
+* $\omega_i$: incoming direction
+* $\theta$: angle between incoming direction and normal
+
+Key challenge: to evaluate incoming radiance, we have to compute yet another integral. I.e., rendering equation is recursive.
+
+### Reflection
+
+Reflection is the process by which light incident on a surface interacts with the surface such that it leaves on the incident (same) side without change in frequency.
+
+Choice of reflection function determines surface appearance.
+
+### Scattering
+
+In general, can talk about probability a particle arriving from a given direction is scattered in another direction.
+
+At any point on any surface in the scene, there's an incident radiance field that gives the directional distribution of illumination at the point.
+
+#### Scattering off a surface: BRDF
+
+* BidirectionaI reflectance distribution function
+* Encodes behavior of light that "bounces off" surface 
+* Given incoming direction $\omega_i$, how much light gets scattered in any given outgoing direction $\omega_o$
+* Describe as distribution $f_r(\omega_i \to \omega_o)$.
+
+$$
+f_r(\omega_i \to \omega_o) \geq 0 \\
+\int_{\mathcal{H}^2} f_r(\omega_i \to \omega_o) \cos \theta \mathrm{d}\omega_i \leq 1 \\
+f_r(\omega_i \to \omega_o) = f_r(\omega_o \to \omega_i)
+$$
+
+#### Radiometric description of BRDF:
+
+$$
+f_r(\omega_i \to \omega_o) = \frac{\mathrm{d}L_o(\omega_o)}{\mathrm{d}E_i(\omega_i)} = \frac{\mathrm{d}L_o(\omega_o)}{\mathrm{d}L_i(\omega_i) \cos \theta_i}
+$$
+
+For a given change in the incident irradiance, how much does the exitant radiance change.
+
+#### Examples
+
+##### Lambertian
+
+$$
+L_o(\omega_o) = \int_{H^2} f_r L_i(\omega_i) \cos \theta_i \mathrm{d}\omega_i = f_r E \\
+f_r = \frac{\rho}{\pi} \; (0 \leq \rho \leq 1)
+$$
+
+$\rho$: albedo
+
+##### Specular
+
+$$
+\omega_o = -\omega_i + 2(\omega_i \cdot \vec{n}) \vec{n} \\
+f_r (\theta_i, \phi_i; \theta_o, \phi_o) = \frac{\delta(\cos \theta_i - \cos \theta_o)}{\cos \theta_i} \delta(\phi_i - \phi_o \pm \pi)
+$$
+
+Strictly speaking, $f_r$ is a distribution, not a function 
+
+In practice, no hope offinding reflected direction via random sampling. Simply pick the reflected direction!
+
+### Refraction
+
+#### Snell's law
+
+$\eta_i \sin \theta_i = \eta_t \sin \theta_t$
+
+#### Fresnel reflection
+
+Reflectance increases with viewing angle.
+
+### Anisotropic reflection
+
+Reflection depends on azimuthal angle $\phi$.
+
+### Subsurcaface scattering
+
+Visual characteristics of many surfaces caused by light entering at different points than it exits.
+
+* Violates a fundamental assumption of the BRDF 
+* Need to generalize scattering model (BSSRDF) 
+
+Generalization of BRDF.
+
+Describes exitant radiance at one point due to incident differential irradiance at another point.
+$$
+S(x_i, \omega_i, x_o, \omega_o)
+$$
+Generalization of reflection equation integrates over all points on the surface and all directions.
+$$
+L(x_o, \omega_o) = \int_A \int_{H^2} S(x_i, \omega_i, x_o, \omega_o) L_i(x_i, \omega_i) \mathrm{d}\omega_i \mathrm{d}A
+$$
+
+### Approximate integral
+
+Approximate integral via Monte Carlo integration.
+

@@ -21,7 +21,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [x] 13 Spatial Data Structures
 * [x] 14 Color
 * [x] 15 Radiometry
-* [ ] 16 The Rendering Equation
+* [x] 16 The Rendering Equation
 * [ ] 17 Numerical Integration
 * [ ] 18 Monte Carlo Ray Tracing
 * [ ] 19 Variance Reduction
@@ -64,7 +64,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
   * [x] 1 - Generating Camera Rays
   * [x] 2 - Intersecting Triangles and Spheres
   * [x] 3 - Implementing a Bounding Volume Hierarchy (BVH)
-  * [ ] 4 - Implementing Shadow Rays
+  * [x] 4 - Implementing Shadow Rays
   * [ ] 5 - Adding Path Tracing
   * [ ] 6 - Adding New Materials
   * [ ] 7 - Infinite Environment Lighting
