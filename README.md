@@ -66,6 +66,6 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
   * [x] 3 - Implementing a Bounding Volume Hierarchy (BVH)
   * [x] 4 - Implementing Shadow Rays
   * [x] 5 - Adding Path Tracing
-  * [ ] 6 - Adding New Materials
+  * [x] 6 - Adding New Materials
   * [ ] 7 - Infinite Environment Lighting
 * [ ] 4.0 Animation

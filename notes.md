@@ -1369,7 +1369,7 @@ $$
 
 Strictly speaking, $f_r$ is a distribution, not a function 
 
-In practice, no hope offinding reflected direction via random sampling. Simply pick the reflected direction!
+In practice, no hope of finding reflected direction via random sampling. Simply pick the reflected direction!
 
 ### Refraction
 

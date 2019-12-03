@@ -55,7 +55,7 @@ bool Sphere::intersect(const Ray& r, Intersection* isect) const {
       isect->n.normalize();
     } else {
       r.max_t = isect->t = t2;
-      isect->n = -(r.o + t1 * r.d - o);
+      isect->n = (r.o + t2 * r.d - o);
       isect->n.normalize();
     }
     return true;
