@@ -487,6 +487,8 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
   // TODO (PathTracer):
   // ### (Task 5) Compute an indirect lighting estimate using pathtracing with Monte Carlo.
 
+  if (r.depth >= max_ray_depth)
+      return L_out;
 
   // Note that Ray objects have a depth field now; you should use this to avoid
   // traveling down one path forever.
@@ -494,11 +496,18 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
   // (1) randomly select a new ray direction (it may be
   // reflection or transmittence ray depending on
   // surface type -- see BSDF::sample_f()
+  Vector3D w_in;
+  float pdf;
+  isect.bsdf->sample_f(w_out, &w_in, &pdf);
 
   // (2) potentially terminate path (using Russian roulette)
 
   // (3) evaluate weighted reflectance contribution due 
   // to light from this direction
+  Spectrum fr = isect.bsdf->f(w_out, w_in);
+  Ray ri(hit_p + hit_n * EPS_D, o2w * w_in, int(r.depth + 1));
+  Spectrum Li = trace_ray(ri);
+  L_out += fr * Li * (std::abs(w_in.z) / pdf);
 
   return L_out;
 }
