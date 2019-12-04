@@ -1407,3 +1407,117 @@ $$
 
 Approximate integral via Monte Carlo integration.
 
+## Lect 17 Numerical Integration
+
+> site: [Numerical Integration](http://15462.courses.cs.cmu.edu/fall2018/lecture/numericalintegration)
+
+### Gauss Quadrature
+
+For any polynomial of degree $n$, we can always obtain the exact integral by sampling at a special set of $n$ points and taking a special weighted combination.
+
+### Trapezoid rule
+
+$$
+I = \frac{h}{2} (f(a) + f(b) + 2\sum_{i = 1}^{n - 1}f(x_i)) + O(h^2) \\
+= \sum_{i = 0}^{n} A_i f(x_i) + O(h^2)
+$$
+
+2D:
+$$
+\begin{align}
+I &= \int_{a_y}^{b_y} \int_{a_x}^{b_x} f(x, y) \mathrm{d} x \mathrm{d} y \\
+&= \int_{a_y}^{b_y} (\sum_{i = 0}^{n}A_i f(x_i, y) + O(h^2)) \mathrm{d}y \\
+&= O(h^2) + \sum_{i = 0}^{n} A_i \int_{a_y}^{b_y} f(x_i, y) \mathrm{d}y \\
+&= O(h^2) + \sum_{i = 0}^{n} A_i \sum_{j = 0}^{n} (A_j f(x_i, y_j) + O(h^2)) \\
+&= \sum_{i = 0}^n\sum_{j = 0}^n A_i A_j f(x_i, y_j) + O(h^2)
+\end{align}
+$$
+still $O(h^2)$ but $O(1 / n)$, and $O(n^2)$ work.
+
+### Monte Carlo Integration
+
+* Estimate value of integral using random sampling of function
+  * Value of estimate depends on random samples used 
+  * But algorithm gives the correct value of integral "on average" 
+* Only requires function to be evaluated at random points on its domain
+  * Applicable to functions with discontinuities, functions that are impossible to integrate directly 
+* Error of estimate is independent of the dimensionality ofthe integrand 
+  * Depends on the number of random samples used
+
+### Random variables
+
+#### PDF and CDF
+
+#### Generate samples with expect to a PDF
+
+If $\xi \sim U(0, 1)$, then
+
+Discrete:
+
+Select $x_i$ if $P_{i - 1} < \xi \leq P_i$
+
+Continuous:
+
+$x = P^{-1}(\xi)$
+
+#### Uniformly sample a unit circle
+
+$$
+A = \int_{0}^{2\pi} \int_{0}^{1} r \mathrm{d}\theta\mathrm{d}r = \pi \\
+\int_{0}^{2\pi} \int_{0}^{1} p(\theta, r) \mathrm{d}\theta\mathrm{d}r = 1 \\
+p(\theta, r) = \frac{r}{\pi} \\
+p(\theta) = \frac{1}{2\pi}, p(r) = 2r \\
+\theta = 2\pi \xi_1, r = \sqrt{\xi_2}
+$$
+
+Another way (rejection method): just generate uniform samples in $[-1, 1]^2$ and reject if not in unit circle.
+
+## Lect 18 Monte Carlo Ray Tracing
+
+> site: [Monte Carlo Ray Tracing](http://15462.courses.cs.cmu.edu/fall2018/lecture/montecarloraytracing)
+
+* Basic idea: take average of random samples 
+* Will need to flesh this idea out with some key concepts: 
+  * EXPECTED VALUE - what value do we get on average? 
+  * VARIANCE - what's the expected deviation from the average? 
+  * IMPORTANCE SAMPLING - how do we (correctly) take more samples in more important regions? 
+
+$$
+\int_{\Omega} f(x) \mathrm d{x} \approx \frac{\vert\Omega\vert}{N}\sum_{i = 1}^{N} f(X_i)
+$$
+
+### Importance Sampling
+
+What if $X_i \sim p(x)$ instead of $X_i \sim U(\Omega)$:
+$$
+\int_{\Omega} f(x) \mathrm{d}x \approx \frac{\vert \Omega \vert}{N} \sum_{i = 1}^{N} \frac{f(X_i)}{p(X_i)}
+$$
+basic idea: put more samples where integrand is large.
+
+#### Direct light
+
+Uniform sampled scattered light leads to noises: Incident lighting estimator uses different random directions in each pixel. Some of those directions point towards the light, others do not.
+
+Don't need to integrate over entire hemisphere of directions (incoming radiance is 0 from most directions). Just integrate over the area of the light (directions where incoming radiance is non-zero) and weight appropriately.
+
+Area integral:
+$$
+E(p) = \int_{A'} L_o(p', p - p') V(p, p') \frac{\cos \theta \cos \theta'}{\vert p - p' \vert^2} \mathrm{d} A' \\
+(\mathrm{d} \omega = \frac{\mathrm{d}A}{\vert p - p' \vert^2} = \frac{\mathrm{d} A'\cos \theta'}{\vert p - p' \vert^2})
+$$
+
+### Cosine-weighted Sampling
+
+$$
+p(\omega) = \frac{\cos \theta}{\pi} \\
+\int_{\Omega} L_i(\omega) \cos \theta \mathrm{d} \omega \approx \frac{1}{N} \sum_{i = 1}^{N} \frac{L(X_i) \cos \theta}{p(X_i)} = \frac{\pi}{N} \sum_{i = 1}^{N} L(X_i)
+$$
+
+### Rossian roulette
+
+Want to avoid spending time evaluating function for samples that make a small contribution to the final result.
+
+Ignoring low-contribution samples introduces systematic error: no longer converges to correct value!
+
+Instead, randomly discard low-contribution samples in a way that leaves estimator unbiased: evaluate original estimator with probability $p_{rr}$, reweight. Otherwise ignore. 
+
