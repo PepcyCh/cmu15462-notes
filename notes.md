@@ -1521,3 +1521,140 @@ Ignoring low-contribution samples introduces systematic error: no longer converg
 
 Instead, randomly discard low-contribution samples in a way that leaves estimator unbiased: evaluate original estimator with probability $p_{rr}$, reweight. Otherwise ignore. 
 
+## Lect 19 Variance Reduction
+
+> site: [Variance Reduction](http://15462.courses.cs.cmu.edu/fall2018/lecture/variancereduction)
+
+You can't reduce variance of the integrand! Can only reduce variance of an estimator. (An "estimator" is a formula used to approximate an integral)
+
+### Consistency and Bias
+
+consistency:
+$$
+\lim_{n \to \infty} P(\vert I - \hat{I_n} \vert > \varepsilon) = 0
+$$
+bias:
+$$
+\lim_{n \to \infty} E(\vert I - \hat{I_n} \vert) = 0
+$$
+
+### Path Space Integral
+
+$$
+I = \int_{\Omega} f(\bar{x}) \mathrm{d} \mu(\bar{x})
+$$
+
+* $\Omega$: all possible paths
+* $f$: how much "light" is carried by this path
+* $\mu$: how much of space does this path "cover"
+* $\bar{x}$: one particular path
+
+### Bidirectional Path Tracing
+
+Idea: connect paths from light
+
+### Metropoils-Hastings Algorithm
+
+Take random walk of dependent samples ("mutations") 
+
+Basic idea: prefer to take steps that increase sample value 
+
+Want to take samples proportional to density $f$.
+
+Start at random point; take steps in (normal) random direction.
+
+Occasionally jump to random point (ergodicity)
+
+Transition probability is "relative darkness": $f(x') / f(x_i)$
+
+### Multiple Importance Sampling
+
+### Sampling Patterns and Variance Reduction
+
+Sampling patterns will affect variance.
+
+#### Stratified Sampling
+
+#### Low-discrepancy Sampling
+
+Discrepancy measures deviation from its ideal.
+$$
+d_S(X) = \vert A(S) - \frac{n(S)}{\vert X \vert} \vert \\
+D(X) = \max_\limits{S \in F} d_S(X)
+$$
+ideally, $D(X) = 0$.
+
+Replace truly random samples with low-discrepancy samples. Koksma's theory:
+$$
+\vert \frac{1}{N}\sum_{i = 1}^{N} f(x_i) - \int_{0}^{1} f(x) \mathrm{d}x \vert \leq \nu(f) D(X)
+$$
+$\nu(f)$: total variation of $f$, integration of $f'$.
+
+##### Hammersley and Halton Points
+
+$n$ Halton points in $k$-dimensions:
+$$
+x_i = (\phi_{P_1}(i), \phi_{P_2}(i), \cdots, \phi_{P_k}(i))
+$$
+$n$ Hammersley points in $k$-dimensions:
+$$
+x_i = (\frac{i}{n}, \phi_{P_1}(i), \cdots, \phi_{P_{k - 1}}(i))
+$$
+$\phi_r(i)$: radical inverse
+
+$P_k$: $k$-th prime number
+
+#### Regular grid ?
+
+Even low-discrepancy patterns can exhibit poor behavior. (e.g. sampling a regular black-white check pattern)
+
+Want pattern to be anisotropic (no preferred direction)
+
+Also want to avoid any preferred frequency (see above!)
+
+#### Blue Noise
+
+#### Poisson Disk Sampling
+
+Iteratively add random non-overlapping disks until no space left.
+
+#### Lloyd Relaxation
+
+Iteratively move each disk to the center of its neighbors.
+
+#### Voronoi-Based Methods
+
+Natural evolution of Lloyd
+
+Optimize qualities of this Voronoi diagram
+
+#### Adaptive Blue Noise
+
+### Sampling from CDF
+
+Sample ways: $O(n \log n)$
+
+#### Alias Table
+
+rob the rich, give to the poor - cost $O(n)$
+
+each column contains only 1 or 2 identities, ratio of heights per column is stored
+
+pick uniform number between 1 and n, then biasd coin flip to pick one of the two identities - cost $O(1)$
+
+### Other Techniques
+
+#### Photon Mapping
+
+Trace particles from light, deposit "photons" in kd-tree
+
+Especially useful for, e.g., caustics, participating media (fog)
+
+#### Finite Element Radiosity
+
+Very different approach: transport between patches in scene
+
+Solve large linear system for equilibrium distribution
+
+Good for diffuse lighting; hard to capture other light paths
+

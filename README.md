@@ -24,7 +24,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [x] 16 The Rendering Equation
 * [x] 17 Numerical Integration
 * [x] 18 Monte Carlo Ray Tracing
-* [ ] 19 Variance Reduction
+* [x] 19 Variance Reduction
 * [ ] 20 Introduction to Animation
 * [ ] 21 Dynamics and Time Integration
 * [ ] 22 Introduction to Optimization
