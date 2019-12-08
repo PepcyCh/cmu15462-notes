@@ -24,6 +24,7 @@ void EnvironmentLight::AliasTable::init(const std::vector<double>& vec) {
     break;
   }
 
+  int poor_max = poor;
   while (rich != -1 && poor != -1) {
     double diff = mid - items[poor].ratio;
     items[poor].id1 = rich;
@@ -34,12 +35,13 @@ void EnvironmentLight::AliasTable::init(const std::vector<double>& vec) {
     if (items[rich].ratio < mid && rich < poor) {
       temp_poor = rich;
     } else {
-      for (int i = poor; i < N; i++) if (items[i].ratio < mid) {
+      for (int i = poor_max; i < N; i++) if (items[i].ratio < mid) {
         temp_poor = i;
         break;
       }
     }
     poor = temp_poor;
+    poor_max = std::max(poor_max, poor);
 
     int temp_rich = -1;
     for (int i = rich; i < N; i++) if (items[i].ratio > mid) {
