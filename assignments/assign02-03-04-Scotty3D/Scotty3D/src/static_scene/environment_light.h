@@ -41,9 +41,24 @@ class EnvironmentLight : public SceneLight {
    * - Handling the edge cases correctly (what happens if you wrap around the
    *   environment map horizontally? What about vertically?).
    */
-  Spectrum sample_dir(const Ray& r) const;
+  Spectrum sample_dir(const Vector3D& r) const;
 
  private:
+  class AliasTable {
+   private:
+    struct Item {
+      int id0, id1;
+      double ratio;
+    };
+    std::vector<Item> items;
+
+   public:
+    void init(const std::vector<double>& vec);
+    int sample(double p) const;
+  };
+
+  AliasTable table;
+  std::vector<double> probs;
   const HDRImageBuffer* envMap;
 };  // class EnvironmentLight
 

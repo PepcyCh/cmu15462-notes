@@ -60,12 +60,12 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
     * [x] `LoopSubdivision` - depends on `EdgeSplit` and `EdgeFlip`
     * [x] `IsotropicRemeshing` - depends on `EdgeSplit`, `EdgeFlip`, and `EdgeCollapse`
     * [x] `Simplification` - depends on `EdgeCollapse`
-* [ ] 3.0 PathTracer
+* [x] 3.0 PathTracer
   * [x] 1 - Generating Camera Rays
   * [x] 2 - Intersecting Triangles and Spheres
   * [x] 3 - Implementing a Bounding Volume Hierarchy (BVH)
   * [x] 4 - Implementing Shadow Rays
   * [x] 5 - Adding Path Tracing
   * [x] 6 - Adding New Materials
-  * [ ] 7 - Infinite Environment Lighting
+  * [x] 7 - Infinite Environment Lighting
 * [ ] 4.0 Animation

@@ -125,6 +125,7 @@ Ray Camera::generate_ray(double x, double y) const {
 
   Vector3D tar = Vector3D((x - .5) * screenW, (y - .5) * screenH, -screenDist);
   Vector3D dir = c2w * tar;
+  dir.normalize();
   Vector3D org = pos;
 
   return Ray(org, dir);
