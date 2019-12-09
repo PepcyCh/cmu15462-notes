@@ -1658,3 +1658,104 @@ Solve large linear system for equilibrium distribution
 
 Good for diffuse lighting; hard to capture other light paths
 
+## Lect 20 Intro to Animation
+
+> site: [Intro to Animation](http://15462.courses.cs.cmu.edu/fall2018/lecture/introanimation)
+
+### Keyframing
+
+Basic idea:
+
+* specify important events only
+
+* computer fills in the rest via interpolation/approximation
+
+"Events" don't have to be position. Could be color, light intensity, camera zoom...
+
+### Spline Interpolation
+
+#### Splines
+
+Piecewise polynomial functions.
+
+#### Cubic Spline Interpolation
+
+among all interpolated curves, minimizes norm of the second derivative
+
+runge phenomenon
+
+#### Spline Desiderata
+
+In general, what are some properties of a "good" spline?
+- INTERPOLATION: spline passes exactlythrough data points
+- CONTINUITY: at least twice differentiable everywhere
+- LOCALITY: moving one control point doesn't affect whole curve
+
+Natural cubic spline:
+
+- INTERPOLATION: yes
+- CONTINUITY: $C^2$ everywhere
+- LOCALITY: no, coefficients depend on global linear system
+
+#### Hermite / Bézier Spline:
+
+- INTERPOLATION: yes
+- CONTINUITY: no
+- LOCALITY: yes
+
+#### Catmull-Rom Spline
+
+Basic idea: use difference of neighbors to define tagent
+$$
+f'(x_i) = \frac{y_{i + 1} - y_{i - 1}}{x_{i + 1} - x_{i - 1}}
+$$
+All the same properties as any other Hermite spline (interpolation & locality)
+
+commonly used to interpolate motion in computer animation
+
+#### B-Splines
+
+Get better continuity and local control by sacrificing interpolation
+
+B-spline basis:
+$$
+B_{i, 1}(t) = \begin{cases}
+1, &t_i \leq t < t_{i + 1} \\
+0, &\text{otherwise}
+\end{cases} \\
+B_{i, k}(t) = \frac{t - t_i}{t_{i + k - 1} - t_i}B_{i, k - 1}(t) + \frac{t_{i + k} - t}{t_{i + k} - t_{i + 1}}B_{i + 1, k - 1}(t)
+$$
+B-spline: $f(t) = \sum_{i} a_i B_{i, d}(t)$
+
+### What are we interpolating
+
+#### Camera Path
+
+each path is a function $f(t) =  (x(t), y(t), z(t))$, each component is a spline
+
+#### Charater Animation
+
+Scene graph / Kinematic chain: scene as tree of transformations
+
+animate by interpolate transformations
+
+#### Inverse Kinematics
+
+Important technique in animation & robotics
+
+Rather than adjust individual transformations, set ugoal" and use algorithm to come up with plausible motion
+
+#### Skeletal Animation
+
+Often use "skeleton" to drive deformation of continuous surface
+
+Influence of each bone determined by, e.g., weighting function
+
+#### Blend Shapes
+
+Instead of skeleton, interpolate directly between surfaces
+
+Simplest scheme: take linear combination of vertex positions
+
+SpIine used to control choice of weights over time
+
