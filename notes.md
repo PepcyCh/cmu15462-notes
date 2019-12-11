@@ -1759,3 +1759,219 @@ Simplest scheme: take linear combination of vertex positions
 
 SpIine used to control choice of weights over time
 
+## Lect 21 Dynamics and Time Integration
+
+> site: [Dynamics and Time Integration](http://15462.courses.cs.cmu.edu/fall2018/lecture/dynamicstimeintegration)
+
+### Dynamic Description of Motion
+
+#### Animation Equations
+
+#### Generalized coordinates
+
+$q = (x_0, x_1, \dots, x_n)$
+
+Similarly, generalized velocity: $v = \dot{q} = (\dot{x_0}, \dot{x_1}, \dots, \dot{x_n})$
+
+### ODE
+
+Many dynamical systems can be described via an ordinary differential equation (ODE) in generalized coordinates:
+$$
+\frac{\mathrm{d}}{\mathrm{d} t} q = f(q, \dot{q}, t)
+$$
+
+#### Lagrangian Mechanics
+
+kinetic energy: $K$
+
+potential energy: $U$
+
+Lagrangian: $\mathcal{L} = K - U$
+
+Euler-Lagrangian equations:
+$$
+\frac{\mathrm{d}}{\mathrm{d}t} \frac{\partial \mathcal{L}}{\partial \dot{q}} = \frac{\partial \mathcal{L}}{\partial q}
+$$
+Why is this useful?
+- often easier to come up with (scalar) energies than forces
+- very general, works in any kind of generalized coordinates
+- helps develop nice class of numerical integrators (symplectic)
+
+#### Example: pendulum
+
+$$
+q = \theta \\
+K = \frac{1}{2} I \dot{\theta}^2 = \frac{1}{2} m L^2 \dot{\theta}^2 \\
+U = -mg L \cos \theta \\
+\mathcal{L} = K - U = m \left( \frac{1}{2}L^2 \dot{\theta}^2 + gL \cos \theta \right) \\
+\frac{\partial \mathcal{L}}{\partial \theta} = - mgL \sin \theta \\
+\frac{\partial \mathcal{L}}{\partial \dot{\theta}} = mL^2 \dot{\theta} \\
+\frac{\mathrm{d}}{\mathrm{d} t} \frac{\partial \mathcal{L}}{\partial \dot{\theta}} = mL^2 \ddot{\theta} \\
+\ddot{\theta} = - \frac{g}{L} \sin \theta
+$$
+
+For small angle, $\sin \theta \approx \theta$, we have $\theta(t) = a \cos (t \sqrt{g / L} + b)$.
+
+* In general, there is no closed form solution!
+* Hence, we must use a numerical approximation
+* And this was (almost) the simplest system we can think of!
+
+### Simulation via ODE
+
+#### Simulated Flocking as an ODE
+
+Subject to very simple forces:
+- attraction to center of neighbors
+- repulsion from individual neighbors
+- alignment toward average trajectory of neighbors
+
+Solve large system of ODEs (numerically!)
+
+Emergent complex behavior
+
+#### Particle Systems
+
+More generally, model phenomena as large collection of particles
+
+Each article has a behavior described by (pkysical or non-physical) forces
+
+Extremely common in graphics/games
+
+- easy to understand
+- simple equation for each particle
+- easy to scale up/down
+
+May need many particles to capture certain phenomena (e.g., fluids)
+
+- may require fast hierarchical data structure (kd-tree, BVH, ...)
+- often better to use continuum model
+
+#### Mass-Spring Systems
+
+Connect particles $x_0$, $x_1$ by a spring of length $L_0$
+
+Potential energy: $U = \frac{1}{2}k (|x_0 - x_1| - L_0)^2$
+
+Connect up many springs to describe interesting phenomena
+
+Extremely common in graphics/games
+
+- easy to understand
+- simple equation for each particle
+
+Often good reasons for using continuum model (PDE)
+
+### Numerical Integration
+
+Key idea: replace derivatives with differences
+
+In ODE, only need to worry about derivative in time
+
+Replace time-continuous function $q(t)$ with samples $q_k$ in time
+
+#### Forward Euler
+
+$$
+q_{k + 1} = q_k + \tau f(q_k)
+$$
+
+explicit
+
+not very stable
+
+##### Stability Analysis
+
+ODE: $\dot{u} = -au, ~ a > 0$
+
+exact solution: $u = \exp(-at)$, $u$ should decay
+$$
+u_{k + 1} = u_k - \tau a u_k = (1 - \tau a) u_k \\
+u_{k} = (1 - \tau a)^n u_0
+$$
+$u$ decays only if $|1 - \tau a| < 1$, or say $\tau < 2 / a$
+
+In practice: need very small time steps if $a$ is large ("stiff system")
+
+#### Backward Euler
+
+$$
+q_{k + 1} = q_k + \tau f(q_{k + 1})
+$$
+
+harder to solve (implicit)
+
+stable (even to stable...)
+
+##### Stability Analysis
+
+ODE: $\dot{u} = -au, ~ a > 0$
+
+exact solution: $u = \exp(-at)$, $u$ should decay
+$$
+u_{k + 1} = u_k - \tau a u_{k + 1} \\
+u_{k + 1} = \frac{1}{1 + \tau a} u_k \\
+u_{k} = \left( \frac{1}{1 + \tau a} \right)^n u_0
+$$
+$u$ always decays
+
+Backward Euler is unconditionally stable for linear ODEs
+
+#### Symplectic Euler
+
+Backward Euler was stable, but we also saw (empirically) that it exibits numerical damping (damping not found in original eqn.)
+
+Nice alternative is symplectic Euler
+
+- update velocity using current configuration
+- update configuration using new velocity
+
+Easy to implement; used often in practice (or leapfrog, Verlet...)
+
+### Computational Differentiation
+
+Very often in simulation, need to differentiate extremely complicated functions (e.g., potential energy, to get forces)
+
+Several different techniques:
+
+- keep doing it by hand! (laborious & error prone, but potentially fast)
+- numerical differentiation (simpleto code, but usually poor accuracy)
+- automatic differentiation (bigger code investment, better accuracy)
+- symbolic differentiation (can help w/ "by-hand", often messy results)
+- geometric differentiation (sometimes simplifies "by hand" expressions)
+
+#### Numerical Differantiation
+
+Idea: replace derivatives with differences
+
+#### Automatic Differentiation
+
+Completely different idea: do arithmetic simultaneously on a function and its derivative.
+
+I.e., rather than work with values $f$, work with tuples $(f, f')$.
+
+Use chain rule to determine rules for manipulating tuples
+
+* Pros: good accuracy, reasonably fast
+* Cons: have to redefine all our arithmetic operators!
+
+#### Symbolic Differentiation
+
+Build explicit tree representing expression
+
+Apply transformations to obtain derivative
+
+* Pros: only needs to happen once!
+* Cons: serious development investment
+
+But, can often use existing tools (Mathematica, Maple, etc.)
+
+Current systems not great with vectors, 3D
+
+Often produce unnecessarily complex formulae...
+
+#### Geometric Differentiation
+
+Sometimes symbolic differentiation misses the "big picture"
+
+E.g., gradient of triangle area w.r.t. vertex position p
+
