@@ -1975,3 +1975,156 @@ Sometimes symbolic differentiation misses the "big picture"
 
 E.g., gradient of triangle area w.r.t. vertex position p
 
+## Lect 22 Introduction to Optimization
+
+> site: [Introduction to Optimization](http://15462.courses.cs.cmu.edu/fall2018/lecture/optimization)
+
+### Optimization Problem
+
+#### Standard form
+
+$$
+f(x^{\ast}) = \min_\limits{x \in \mathbb{R}^n} f_0(x) \\
+\text{subject to } f_i(x) \leq b_i, i = 1, 2, \dots, m
+$$
+
+* Q: What if we want to maximize something instead?
+* A: Just flip the sign of the objective!
+* Q: What if we want equality constraints, rather than inequalities?
+* A: Include two constraints: $g(x) \leq c$ and $-g(x) \leq -c$
+
+#### Local & Global Minima
+
+#### Existance & Uniqueness of Minimizers
+
+#### Feasibility
+
+#### Characterization of Local Minimizer
+
+##### Unconstrained
+
+$$
+\nabla f_0(x^{\ast}) = 0 \\
+\nabla^2 f_0(x^{\ast}) \succeq 0
+$$
+
+($\succeq$ means positive semidefinite here)
+
+##### Constrained
+
+The above two conditions may not be satisfied
+
+Karush-Kuhn-Tucker(KKT) conditions:
+$$
+\begin{align}
+\exist \lambda_i \text{ s.t. } \nabla f_0(x^{\ast}) = -\sum_{i = 1}^{m} \lambda_i \nabla f_i(x^{\ast}) &~~~~ \text{stationarity} \\
+f_i(x^{\ast}) \leq 0, i = 1, \dots, m &~~~~ \text{primal feasibility} \\
+\lambda_i \geq 0, i = 1, \dots, m &~~~~ \text{dual feasibility} \\
+\lambda_i f_i(x^{\ast}) = 0, i = 1, \dots, m &~~~~ \text{complementary slackness}
+\end{align}
+$$
+
+#### Convex Optimization
+
+Special class of problems that are almost always "easy" to solve (polynomial-time!)
+
+Problem convex if it has a convex domain and convex objective
+
+Why care about convex problems in graphics?
+- can make guarantees about solution (always the best)
+- doesn't depend on initialization (strong convexity)
+- often quite efficient, but not always
+
+##### Convex Quadratic Objectives
+
+$$
+f_0(x) = \frac{1}{2} x^T A x - x^T b, A \succeq 0 \\
+\nabla f_0(x) = Ax - b = 0, Ax = b \\
+\nabla^2 f_0(x) = A \succeq 0
+$$
+
+### Descent Method
+
+#### Gradient Descent
+
+Basic idea: follow the gradient "downhill" until it's zero
+
+Gradient descent equation is an ODE:
+$$
+\frac{\mathrm{d}}{\mathrm{d}t} x(t) = -f'_0(x(t))
+$$
+
+##### How do we pick the time step?
+
+If we're not careful, we'll go zipping all over the place; won't make any progress.
+
+Basic idea: use "step control" to determine step size based on value of objective & derivatives.
+
+A careful strategy (e.g. Armijo-Wolfe) can guarantee convergence at least to a local minimum.
+
+#### Higher Order Descent
+
+General idea: apply a coordinate transformation so that the local energy landscape looks more like a "round bowl"
+
+Gradient now points directly toward nearby minimizer
+
+Most basic strategy: Newton's method:
+$$
+x_{k + 1} = x_k - \tau ( \nabla^2 f_0(x_k) )^{-1} \nabla f_0(x_k)
+$$
+Great for convex problems.
+
+For nonconvex problems, need to be more careful
+
+In general, nonconvex optimization is a BLACK ART
+
+Meta-strategy: try lots of solvers, see what works! (e.g. quasi-Newton, trust region, L-BFGS...)
+
+### Forward Kinematics
+
+Many systems well-described by a kinematic chain
+- collection of rigid bodies, connected by joints
+- joints have various behaviors (ball, piston, ...)
+- also have constraints (e.g., range of angles)
+- hierarchical structure (body -> leg -> foot)
+
+In animation, often called a rig
+
+How do we specify the configuration of a "rig"?
+
+- One way: artist sets each joint individually
+- Another way: ...optimization!
+
+#### Simple Kinematic Chain
+
+In 2D:
+$$
+p_1 = p_0 + \begin{bmatrix}
+\cos \theta_0 & \sin \theta_0 \\
+- \sin \theta_0 & \cos \theta_0 
+\end{bmatrix} u_0
+$$
+Or use complex numbers:
+$$
+p_1 = p_0 + e^{\imath \theta_0}u_0
+$$
+and
+$$
+p_2 = p_0 + e^{\imath \theta_0} u_0 + e^{\imath \theta_1} u_1
+$$
+
+#### Simple IK Algorithm
+
+Basic idea behind our IK algorithm:
+- write down distance between final point and "target"
+- compute gradient with respect to angles
+- apply gradient descent
+
+Objective:
+$$
+f_0(\theta) = \frac{1}{2} \vert \tilde{p_n} - p_n \vert^2
+$$
+Constraints:
+- None! Thejoint angle can take any value.
+- Though we could limit joint angles (for instance)
+
