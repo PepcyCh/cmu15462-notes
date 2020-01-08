@@ -28,7 +28,7 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [x] 20 Introduction to Animation
 * [x] 21 Dynamics and Time Integration
 * [x] 22 Introduction to Optimization
-* [ ] 23 Physically-Based Animation and PDEs
+* [x] 23 Physically-Based Animation and PDEs
 
 ### Assignments
 

@@ -2122,9 +2122,86 @@ Basic idea behind our IK algorithm:
 
 Objective:
 $$
-f_0(\theta) = \frac{1}{2} \vert \tilde{p_n} - p_n \vert^2
+f_0(\theta) = \frac{1}{2} \vert \tilde{p}_n - p_n \vert^2
 $$
 Constraints:
-- None! Thejoint angle can take any value.
+- None! The joint angle can take any value.
 - Though we could limit joint angles (for instance)
 
+## Lect 23 Physically Based Animation and PDEs
+
+> site: [Physically Based Animation and PDEs](http://15462.courses.cs.cmu.edu/fall2018/lecture/pdes)
+
+### Partial Differential Equations
+
+#### Elliptic PDEs / Laplace Equation
+
+"What's the smoothest function interpolating the given boundary data?”
+$$
+\Delta u = 0
+$$
+Conceptually: each value is at the average of its "neighbors”
+
+Very robust to error.
+
+#### Parabolic PDEs / Heat Equation
+
+"How does an initial distribution of heat spread out over time?”
+$$
+\dot{u} = \Delta u
+$$
+After a long time, solution is same as Laplace equation!
+
+Models damping / viscosity in many physical systems.
+
+#### Hyperbolic PDEs / Wave Equation
+
+"If you throw a rock into a pond, how does the wavefront evolve over time?"
+$$
+\ddot{u} = \Delta u
+$$
+Errors made at the beginning will persist for a long time! (hard)
+
+### Numerical Solution of PDEs
+
+#### Lagrangian & Eulerian
+
+Two basic ways to discretize space:
+
+* **Lagrangian**: track position & velocity of moving particles
+* **Eulerian**: track velocity (or flux) at fixed grid locations
+
+Lagrangian vs. Eulerian:
+
+* Lagrangian
+  * conceptually easy (like polygon soup!)
+  * resolution/domain not limited by grid
+  * good particle distribution can be tough
+  * finding neighbors can be expensive
+* Eulerian
+  * fast, regular computation
+  * easy to represent, e.g., smooth surfaces
+  * simulation "trapped"in grid
+  * grid causes "numerical diffusion" (blur)
+  * need to understand PDEs
+
+#### Mixing Lagrangian & Eulerian
+
+#### Basic Strategy
+
+* Pick PDE formulation
+  * Which quantity do we want to solve for?
+  * E.g., velocity or vorticity?
+* Pick spatial discretization
+  * How do we approximate derivatives in space?
+* Pick time discretization
+  * How do we approximate derivatives in time?
+  * When do we evaluate forces?
+* Finally, we have an update rule
+* Repeatedly solve to generate an animation
+
+#### Boundary Conditions
+
+* **Dirichlet**: boundary data always set to fixed values
+* **Neumann**: specify derivative (difference) across boundary
+* mixed
