@@ -4,6 +4,8 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 
 ## Todo
 
+All the notes and assignments are done.
+
 ### Notes
 
 * [x] 01 Course Introduction
@@ -68,8 +70,8 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
   * [x] 5 - Adding Path Tracing
   * [x] 6 - Adding New Materials
   * [x] 7 - Infinite Environment Lighting
-* [ ] 4.0 Animation
+* [x] 4.0 Animation
   * [x] 1 - Spline Interpolation
   * [x] 2 - Skeleton Kinematics
   * [x] 3 - Linear Blend Skinning
-  * [ ] 4 - Phisycal Simulation
+  * [x] 4 - Phisycal Simulation

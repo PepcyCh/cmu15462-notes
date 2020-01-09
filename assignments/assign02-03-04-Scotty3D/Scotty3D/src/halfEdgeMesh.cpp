@@ -639,8 +639,29 @@ BBox Face::bounds() const {
 BBox Halfedge::bounds() const { return edge()->bounds(); }
 
 float Vertex::laplacian() const {
-  // TODO (Animation) Task 4
-  return 0.0;
+  HalfedgeCIter h = halfedge();
+  double res = 0;
+
+  do {
+    Vector3D v0 = h->next()->next()->vertex()->position;
+    h = h->twin();
+    Vector3D vj = h->vertex()->position;
+    Vector3D v1 = h->next()->next()->vertex()->position;
+
+    Vector3D v0i = position - v0;
+    Vector3D v0j = vj - v0;
+    double cot0 = dot(v0i, v0j) / cross(v0i, v0j).norm();
+
+    Vector3D v1i = position - v1;
+    Vector3D v1j = vj - v1;
+    double cot1 = dot(v1i, v1j) / cross(v1i, v1j).norm();
+
+    res += (cot0 + cot1) * (h->vertex()->offset - offset);
+
+    h = h->next();
+  } while (h != halfedge());
+
+  return 0.5 * res;
 }
 
 void Vertex::getAxes(vector<Vector3D>& axes) const {
