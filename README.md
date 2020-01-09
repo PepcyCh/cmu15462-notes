@@ -71,5 +71,5 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
 * [ ] 4.0 Animation
   * [x] 1 - Spline Interpolation
   * [x] 2 - Skeleton Kinematics
-  * [ ] 3 - Linear Blend Skinning
+  * [x] 3 - Linear Blend Skinning
   * [ ] 4 - Phisycal Simulation

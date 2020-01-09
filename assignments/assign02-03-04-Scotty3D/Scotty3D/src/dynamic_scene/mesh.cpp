@@ -49,7 +49,43 @@ Mesh::Mesh(Collada::PolymeshInfo &polyMesh, const Matrix4x4 &transform) {
 }
 
 void Mesh::linearBlendSkinning(bool useCapsuleRadius) {
-  // TODO (Animation) Task 3a, Task 3b
+  for (auto v = mesh.verticesBegin(); v != mesh.verticesEnd(); v++) {
+    std::vector<LBSInfo> infos;
+    double sumW = 0;
+
+    for (auto j : skeleton->joints) {
+      Matrix4x4 T = j->getBindTransformation();
+      Vector3D pos = T.inv() * v->bindPosition;
+      Vector3D proj = dot(pos, j->axis) * j->axis;
+      if (j->axis.norm2() != 0) proj /= j->axis.norm();
+
+      Vector3D closest;
+      if (dot(proj, j->axis) < 0)
+        closest = Vector3D(0, 0, 0);
+      else if (proj.norm2() > j->axis.norm2())
+        closest = j->axis;
+      else
+        closest = proj;
+      double dist = (pos - closest).norm();
+
+      if (useCapsuleRadius && dist > j->capsuleRadius) continue;
+
+      T = j->getTransformation() * j->getRotation();
+      LBSInfo info;
+      info.blendPos = T * pos;
+      info.distance = dist;
+      infos.push_back(info);
+      sumW += 1.0 / dist;
+    }
+
+    if (!infos.empty()) {
+      v->position = Vector3D(0, 0, 0);
+      for (auto i : infos) {
+        double w = 1.0 / i.distance / sumW;
+        v->position += w * i.blendPos;
+      }
+    }
+  }
 }
 
 void Mesh::forward_euler(float timestep, float damping_factor) {
