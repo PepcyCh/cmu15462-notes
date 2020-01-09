@@ -339,8 +339,27 @@ void Skeleton::keyframe(double t) { root->keyframe(t); }
 void Skeleton::unkeyframe(double t) { root->unkeyframe(t); }
 
 void Skeleton::reachForTarget(map<Joint*, Vector3D> targets, double time) {
-  // TODO (Animation) Task 2B
   // Do several iterations of Jacobian Transpose gradient descent for IK
+
+  std::set<Joint*> joints;
+  for (auto pair : targets) {
+    for (Joint* j = pair.first; j != nullptr; j = j->parent) {
+      j->ikAngleGradient = 0;
+      joints.insert(j);
+    }
+  }
+
+  double ALPHA = 0.02;
+  int steps = 1 / ALPHA;
+  while (steps--) {
+    for (auto pair : targets) {
+      root->calculateAngleGradient(pair.first, pair.second);
+    }
+    for (auto j : joints) {
+      j->setAngle(time, j->rotation = j->rotation - ALPHA * j->ikAngleGradient);
+      j->ikAngleGradient = 0;
+    }
+  }
 }
 
 void Skeleton::save(const char* filename) {

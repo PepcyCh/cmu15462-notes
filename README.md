@@ -70,6 +70,6 @@ Site: [Computer Graphics (cmu 15-462) fall2018](http://15462.courses.cs.cmu.edu/
   * [x] 7 - Infinite Environment Lighting
 * [ ] 4.0 Animation
   * [x] 1 - Spline Interpolation
-  * [ ] 2 - Skeleton Kinematics
+  * [x] 2 - Skeleton Kinematics
   * [ ] 3 - Linear Blend Skinning
   * [ ] 4 - Phisycal Simulation
